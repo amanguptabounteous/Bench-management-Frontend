@@ -1,0 +1,30 @@
+/* GlobalNav.css */
+
+/* Default: solid grey text */
+.gradient-hover {
+  color: #6c757d; /* Bootstrap's default text-secondary grey */
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s ease-in-out;
+}
+
+/* On hover: apply gradient to text */
+.gradient-hover:hover {
+  background: linear-gradient(
+    to right,
+    #ff69b4,
+    #fcd34d,
+    #8b5cf6
+  );
+  background-size: 200% auto;
+  background-position: left center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  transition: background-position 0.7s ease-in-out;
+}
+
+.gradient-hover:hover {
+  background-position: right center;
+}

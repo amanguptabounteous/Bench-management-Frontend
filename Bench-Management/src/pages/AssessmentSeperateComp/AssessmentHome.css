@@ -1,0 +1,30 @@
+/* General Card Hover Effect */
+.clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Topic Cards */
+.topic-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.topic-card:hover {
+  background-color: #e9ecef;
+}
+
+/* Grid Responsiveness */
+@media (max-width: 576px) {
+  .topic-card {
+    font-size: 14px;
+    padding: 12px;
+  }
+}

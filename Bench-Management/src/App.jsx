@@ -5,6 +5,7 @@ import SignIn from './pages/SignIn';
 import GlobalNavbar from './components/GlobalNav';
 import BenchHomepage from './pages/BenchHomepage';
 import Dashboard from './pages/Dashboard';
+import AssessmentLanding from './pages/AssessmentSeperateComp/AssessmentHome';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/home" element={<BenchHomepage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assessmentcomp" element={<AssessmentLanding />} />
       </Routes>
     </>
   );
