@@ -1,0 +1,71 @@
+.profile-header {
+  background: linear-gradient(135deg, #4158D0 0%, #C850C0 100%);
+  height: 150px;
+  border-radius: 15px;
+}
+
+.profile-pic {
+  width: 120px;
+  height: 120px;
+  border: 4px solid #fff;
+  margin-top: -60px;
+  background-color: #fff;
+}
+
+.settings-card {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.form-switch .form-check-input {
+  width: 3em;
+  height: 1.5em;
+  margin-left: -3.5em;
+}
+
+.activity-item {
+  border-left: 2px solid #e9ecef;
+  padding-left: 20px;
+  position: relative;
+}
+
+.activity-item::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4158D0;
+  position: absolute;
+  left: -7px;
+  top: 5px;
+}
+
+.nav-pills .nav-link {
+  color: #6c757d;
+  border-radius: 10px;
+  padding: 12px 20px;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #fff;
+  color: #4158D0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content-section {
+  background-color: #000;
+  color: #fff;
+  border-radius: 8px;
+}

@@ -1,9 +1,11 @@
 // App.jsx
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
+import SignIn from './pages/SignIn';
 import GlobalNavbar from './components/GlobalNav';
-import BenchHomepage from './components/BenchHomepage';
-import Dashboard from './components/Dashboard';
+import BenchHomepage from './pages/BenchHomepage';
+import Dashboard from './pages/Dashboard';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (
@@ -11,7 +13,8 @@ function App() {
       <GlobalNavbar />
 
       <Routes>
-        <Route path="/" element={<BenchHomepage />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/home" element={<BenchHomepage />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </>
