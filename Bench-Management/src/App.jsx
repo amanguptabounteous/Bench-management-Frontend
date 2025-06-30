@@ -4,6 +4,7 @@ import './App.css';
 import GlobalNavbar from './components/GlobalNav';
 import BenchHomepage from './components/BenchHomepage';
 import Dashboard from './components/Dashboard';
+import AssessmentLanding from './components/AssessmentSeperateComp/AssessmentHome.jsx';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<BenchHomepage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assessmentcomp" element={<AssessmentLanding />} />
       </Routes>
     </>
   );
