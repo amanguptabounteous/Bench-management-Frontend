@@ -1,53 +1,123 @@
-import React, { useState } from "react";
-import { Container, Form, Card, Row, Col, InputGroup } from "react-bootstrap";
-
-const dummyData = [
-  { name: "John Doe", role: "Frontend Developer" },
-  { name: "Jane Smith", role: "Backend Developer" },
-  { name: "Alice Johnson", role: "UI/UX Designer" },
-];
+import React, { useEffect, useState } from "react";
+import { Container, Form, Card, Row, Col, InputGroup, Spinner, Button } from "react-bootstrap";
+import { fetchBenchDetails } from "../services/benchService";
 
 function BenchHomepage() {
+  const [benchData, setBenchData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sortAsc, setSortAsc] = useState(true);
+  const [filterDeployable, setFilterDeployable] = useState(false);
 
-  const filteredData = dummyData.filter((person) =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchBenchDetails()
+      .then((data) => {
+        setBenchData(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching bench data:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  const filteredData = benchData
+    .filter((person) => {
+      const matchesSearch =
+        person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        person.empId.toString().includes(searchTerm);
+      const matchesDeployable = !filterDeployable || person.isDeployable;
+      return matchesSearch && matchesDeployable;
+    })
+    .sort((a, b) => {
+      return sortAsc ? a.agingDays - b.agingDays : b.agingDays - a.agingDays;
+    });
 
   return (
-    <Container className="mt-4 rounded shadow-sm p-4 bg-light">
-      {/* Search Bar */}
-      <Form>
-        <InputGroup className="mb-4">
+    <Container className="mt-4 rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px" }}>
+      {/* Search and Filter Controls */}
+      <Form className="mb-3">
+        <div className="d-flex flex-wrap align-items-center gap-3">
           <Form.Control
             type="text"
-            placeholder="Search by name..."
+            placeholder="Search by name or emp ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="me-2"
+            style={{ maxWidth: "65%" }}
           />
-        </InputGroup>
+
+          <Form.Check
+            type="checkbox"
+            label="Only Deployable"
+            checked={filterDeployable}
+            onChange={(e) => setFilterDeployable(e.target.checked)}
+            className="me-2"
+          />
+
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            onClick={() => setSortAsc(!sortAsc)}
+          >
+            Sort by Aging {sortAsc ? "↑" : "↓"}
+          </Button>
+        </div>
       </Form>
 
-      {/* Horizontal Thin Cards */}
-      <Row>
-        {filteredData.map((person, index) => (
-          <Col xs={12} key={index} className="mb-2">
-            <Card className="shadow-sm" style={{ height: "60px" }}>
-              <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
-                <div>
-                  <strong>{person.name}</strong>
-                  <div style={{ fontSize: "0.9rem", color: "#666" }}>
-                    {person.role}
+
+      {/* Loading Spinner */}
+      {loading && (
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" />
+        </div>
+      )}
+
+      {!loading && filteredData.length === 0 && (
+        <p className="text-muted text-center">No matching bench employees found.</p>
+      )}
+
+      {/* Scrollable Card List */}
+      <div
+        style={{
+          maxHeight: "370px",
+          overflowY: "auto",
+          paddingRight: "4px",
+        }}
+      >
+        <Row>
+          {filteredData.map((person) => (
+            <Col xs={12} key={person.empId} className="mb-2">
+              <Card className="shadow-sm" style={{ height: "70px" }}>
+                <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
+                  <div>
+                    <strong>{person.name}</strong>{" "}
+                    <span className="text-muted">({person.empId})</span>
+                    <div style={{ fontSize: "0.9rem", color: "#666" }}>
+                      Dept: {person.departmentName}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <small className="text-muted">Available</small>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                  <div style={{ textAlign: "right" }}>
+                    <div>
+                      <small className="text-muted">
+                        Aging: {person.agingDays} days
+                      </small>
+                    </div>
+                    <div>
+                      <small
+                        className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"
+                          }`}
+                      >
+                        {person.isDeployable ? "Deployable" : "Not Deployable"}
+                      </small>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </div>
     </Container>
   );
 }

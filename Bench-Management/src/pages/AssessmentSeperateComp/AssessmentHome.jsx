@@ -1,9 +1,20 @@
 import React from 'react';
 import './AssessmentHome.css';
+import EmployeeTile from '../../components/EmployeeTile';
 
 function AssessmentLanding() {
   return (
     <div className="container py-5">
+      {/* <EmployeeTile
+        name="John Doe"
+        designation="Software Engineer"
+        skills={["Java", "React", "Node.js"]}
+        experience={3}
+        empId="EMP12345"
+        isDeployable={true}
+        agingDays={10}
+        departmentName="Development"
+      /> */}
       <div className="row g-4">
         {/* Search Assessment Component */}
         <div className="col-12">
