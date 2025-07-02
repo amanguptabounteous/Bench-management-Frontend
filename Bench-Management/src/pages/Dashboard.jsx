@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchEmployeeById } from '../services/benchService';
 import { fetchTrainingDetailsbyempID } from '../services/trainingService';
+import { fetchEmployeeScore } from '../services/empScoreService';
+import { fetchInterviewCyclebyEmpId, fetchInterviewRoundsbyCycleId } from '../services/interviewService';
 import ExpandableCard from '../components/ExpandableCard';
 import './Dashboard.css';
 
@@ -12,6 +14,13 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [trainingData, setTrainingData] = useState([]);
   const [trainingLoading, setTrainingLoading] = useState(true);
+  const [scoreData, setScoreData] = useState([]);
+  const [scoreLoading, setScoreLoading] = useState(true);
+  const [interviewCycles, setInterviewCycles] = useState([]);
+  const [interviewRounds, setInterviewRounds] = useState({});
+  const [interviewLoading, setInterviewLoading] = useState(true);
+
+
 
 
   useEffect(() => {
@@ -34,6 +43,38 @@ function Dashboard() {
         console.error('Error fetching training data:', err);
         setTrainingLoading(false);
       });
+
+    fetchEmployeeScore(empId)
+      .then(data => {
+        setScoreData(data);
+        setScoreLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching assessment scores:', err);
+        setScoreLoading(false);
+      });
+    fetchInterviewCyclebyEmpId(empId)
+      .then(async (cycles) => {
+        setInterviewCycles(cycles);
+
+        const roundsMap = {};
+        for (const cycle of cycles) {
+          try {
+            const rounds = await fetchInterviewRoundsbyCycleId(cycle.cycleId);
+            roundsMap[cycle.cycleId] = rounds;
+          } catch (roundErr) {
+            console.error(`Error fetching rounds for cycle ${cycle.cycleId}:`, roundErr);
+          }
+        }
+
+        setInterviewRounds(roundsMap);
+        setInterviewLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching interview cycles:', err);
+        setInterviewLoading(false);
+      });
+
   }, [empId]);
 
   if (loading) {
@@ -110,129 +151,203 @@ function Dashboard() {
         );
 
       case 'training':
-  if (trainingLoading) {
-    return (
-      <div className="text-center py-4">
-        <span className="spinner-border text-primary" />
-      </div>
-    );
-  }
+        if (trainingLoading) {
+          return (
+            <div className="text-center py-4">
+              <span className="spinner-border text-primary" />
+            </div>
+          );
+        }
 
-  if (!trainingData.length) {
-    return (
-      <div className="card border-0 shadow-sm">
-        <div className="card-body p-4">
-          <h5 className="mb-4">Training Details</h5>
-          <p className="text-muted">No training records found.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="card border-0 shadow-sm">
-      <div className="card-body p-4">
-        <h5 className="mb-4">Training Details</h5>
-        <div
-          style={{
-            maxHeight: '350px',
-            overflowY: 'auto',
-            paddingRight: '4px',
-          }}
-        >
-          {trainingData.map((training) => (
-            <ExpandableCard
-              key={training.trainingId}
-              title={`TRN-${training.trainingId}`}
-              subtitle={training.topics}
-            >
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <strong>Start Date:</strong> {training.startDate}
-                </div>
-                <div className="col-md-6">
-                  <strong>End Date:</strong> {training.endDate}
-                </div>
-                <div className="col-md-6">
-                  <strong>Mentor:</strong> {training.mentor}
-                </div>
-                <div className="col-md-6">
-                  <strong>Feedback:</strong> {training.feedback}
-                </div>
-                <div className="col-md-6">
-                  <strong>Topics Covered:</strong> {training.topics}
-                </div>
+        if (!trainingData.length) {
+          return (
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-4">
+                <h5 className="mb-4">Training Details</h5>
+                <p className="text-muted">No training records found.</p>
               </div>
-            </ExpandableCard>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+            </div>
+          );
+        }
+
+        return (
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-4">
+              <h5 className="mb-4">Training Details</h5>
+              <div
+                style={{
+                  maxHeight: '350px',
+                  overflowY: 'auto',
+                  paddingRight: '4px',
+                }}
+              >
+                {trainingData.map((training) => (
+                  <ExpandableCard
+                    key={training.trainingId}
+                    title={`TRN-${training.trainingId}`}
+                    subtitle={training.topics}
+                  >
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <strong>Start Date:</strong> {training.startDate}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>End Date:</strong> {training.endDate}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Mentor:</strong> {training.mentor}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Feedback:</strong> {training.feedback}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Topics Covered:</strong> {training.topics}
+                      </div>
+                    </div>
+                  </ExpandableCard>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
 
 
 
 
       case 'assessment':
+        if (scoreLoading) {
+          return (
+            <div className="text-center py-4">
+              <span className="spinner-border text-primary" />
+            </div>
+          );
+        }
+
+        if (!scoreData.length) {
+          return (
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-4">
+                <h5 className="mb-4">Assessment Details</h5>
+                <p className="text-muted">No assessment records found.</p>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
               <h5 className="mb-4">Assessment Details</h5>
-              <div className="table-responsive">
-                <table className="table table-bordered align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Assessment ID</th>
-                      <th>Assessment Link</th>
-                      <th>Topic</th>
-                      <th>Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {assessments.map((a) => (
-                      <tr key={a.assessment_id}>
-                        <td>{a.assessment_id}</td>
-                        <td>
-                          <a href={a.assessment_link} target="_blank" rel="noopener noreferrer">
-                            View Assessment
-                          </a>
-                        </td>
-                        <td>{a.topic}</td>
-                        <td>{a.score}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div
+                style={{
+                  maxHeight: '350px',
+                  overflowY: 'auto',
+                  paddingRight: '4px',
+                }}
+              >
+                {scoreData.map((score) => (
+                  <ExpandableCard
+                    key={score.assessmentId}
+                    title={`Assessment-${score.assessmentId}`}
+                    subtitle={`${score.topic} — ${score.empScore}/${score.totalScore}`}
+                  >
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <strong>Name:</strong> {score.name}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Employee ID:</strong> {score.empId}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Topic:</strong> {score.topic}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Score:</strong> {score.empScore} / {score.totalScore}
+                      </div>
+                    </div>
+                  </ExpandableCard>
+
+                ))}
               </div>
             </div>
           </div>
         );
 
+
       case 'interview':
+        if (interviewLoading) {
+          return (
+            <div className="text-center py-4">
+              <span className="spinner-border text-primary" />
+            </div>
+          );
+        }
+
+        if (!interviewCycles.length) {
+          return (
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-4">
+                <h5 className="mb-4">Interview Details</h5>
+                <p className="text-muted">No interview cycles found.</p>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
               <h5 className="mb-4">Interview Details</h5>
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <strong>Interview ID:</strong> INT-2024-001
-                </div>
-                <div className="col-md-6">
-                  <strong>Date:</strong> 2024-07-01
-                </div>
-                <div className="col-md-6">
-                  <strong>Panel:</strong> John Doe, Priya Sharma
-                </div>
-                <div className="col-md-6">
-                  <strong>Feedback:</strong> Good technical skills.
-                </div>
-                <div className="col-md-6">
-                  <strong>Status:</strong> Selected
-                </div>
+              <div
+                style={{
+                  maxHeight: '350px',
+                  overflowY: 'auto',
+                  paddingRight: '4px',
+                }}
+              >
+                {interviewCycles.map((cycle) => (
+                  <ExpandableCard
+                    key={cycle.cycleId}
+                    title={cycle.client}
+                    subtitle={cycle.title}
+                  >
+                    {interviewRounds[cycle.cycleId] && interviewRounds[cycle.cycleId].length > 0 ? (
+                      <div className="table-responsive">
+                        <table className="table table-bordered align-middle">
+                          <thead className="table-light">
+                            <tr>
+                              <th>Round</th>
+                              <th>Date</th>
+                              <th>Panel</th>
+                              <th>Status</th>
+                              <th>Feedback</th>
+                              <th>Review</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {interviewRounds[cycle.cycleId].map((round) => (
+                              <tr key={round.interviewId}>
+                                <td>{round.round}</td>
+                                <td>{round.date}</td>
+                                <td>{round.panel}</td>
+                                <td>{round.status}</td>
+                                <td>{round.feedback}</td>
+                                <td>{round.review}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-muted">No rounds found for this cycle.</p>
+                    )}
+                  </ExpandableCard>
+                ))}
               </div>
             </div>
           </div>
         );
+
     }
   };
 
