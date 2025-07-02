@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchEmployeeById } from '../services/benchService';
+import { fetchTrainingDetailsbyempID } from '../services/trainingService';
+import ExpandableCard from '../components/ExpandableCard';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -8,6 +10,9 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('basic');
   const [employeeData, setEmployeeData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [trainingData, setTrainingData] = useState([]);
+  const [trainingLoading, setTrainingLoading] = useState(true);
+
 
   useEffect(() => {
     fetchEmployeeById(empId)
@@ -18,6 +23,16 @@ function Dashboard() {
       .catch(err => {
         console.error('Error fetching employee data:', err);
         setLoading(false);
+      });
+
+    fetchTrainingDetailsbyempID(empId)
+      .then(data => {
+        setTrainingData(data);
+        setTrainingLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching training data:', err);
+        setTrainingLoading(false);
       });
   }, [empId]);
 
@@ -95,33 +110,68 @@ function Dashboard() {
         );
 
       case 'training':
-        return (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h5 className="mb-4">Training Details</h5>
+  if (trainingLoading) {
+    return (
+      <div className="text-center py-4">
+        <span className="spinner-border text-primary" />
+      </div>
+    );
+  }
+
+  if (!trainingData.length) {
+    return (
+      <div className="card border-0 shadow-sm">
+        <div className="card-body p-4">
+          <h5 className="mb-4">Training Details</h5>
+          <p className="text-muted">No training records found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card border-0 shadow-sm">
+      <div className="card-body p-4">
+        <h5 className="mb-4">Training Details</h5>
+        <div
+          style={{
+            maxHeight: '350px',
+            overflowY: 'auto',
+            paddingRight: '4px',
+          }}
+        >
+          {trainingData.map((training) => (
+            <ExpandableCard
+              key={training.trainingId}
+              title={`TRN-${training.trainingId}`}
+              subtitle={training.topics}
+            >
               <div className="row g-4">
                 <div className="col-md-6">
-                  <strong>Training ID:</strong> TRN-2024-001
+                  <strong>Start Date:</strong> {training.startDate}
                 </div>
                 <div className="col-md-6">
-                  <strong>Start Date:</strong> 2024-06-01
+                  <strong>End Date:</strong> {training.endDate}
                 </div>
                 <div className="col-md-6">
-                  <strong>End Date:</strong> 2024-06-15
+                  <strong>Mentor:</strong> {training.mentor}
                 </div>
                 <div className="col-md-6">
-                  <strong>Mentor:</strong> Priya Sharma
+                  <strong>Feedback:</strong> {training.feedback}
                 </div>
                 <div className="col-md-6">
-                  <strong>Feedback:</strong> Excellent progress and participation.
-                </div>
-                <div className="col-md-6">
-                  <strong>Topics Covered:</strong> React, Node.js, Soft Skills
+                  <strong>Topics Covered:</strong> {training.topics}
                 </div>
               </div>
-            </div>
-          </div>
-        );
+            </ExpandableCard>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+
+
 
       case 'assessment':
         return (
