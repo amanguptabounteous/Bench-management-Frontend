@@ -4,17 +4,7 @@ import EmployeeTile from '../../components/EmployeeTile';
 
 function AssessmentLanding() {
   return (
-    <div className="container py-5">
-      {/* <EmployeeTile
-        name="John Doe"
-        designation="Software Engineer"
-        skills={["Java", "React", "Node.js"]}
-        experience={3}
-        empId="EMP12345"
-        isDeployable={true}
-        agingDays={10}
-        departmentName="Development"
-      /> */}
+    <div className="container py-5" style={{ marginTop: '80px' }}>
       <div className="row g-4">
         {/* Search Assessment Component */}
         <div className="col-12">
@@ -41,7 +31,7 @@ function AssessmentLanding() {
         {/* Make Assignment Component */}
         <div className="col-12">
           <div className="card clickable shadow-sm p-4 text-center">
-            <h5 className="mb-0">Make Assignment</h5>
+            <h5 className="mb-0">Assign Assessment</h5>
           </div>
         </div>
       </div>

@@ -1,107 +1,99 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { fetchEmployeeById } from '../services/benchService';
 import './Dashboard.css';
 
 function Dashboard() {
+  const { empId } = useParams();
   const [activeTab, setActiveTab] = useState('basic');
-//   const [activeTab, setActiveTab] = useState('assessment');
+  const [employeeData, setEmployeeData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Dummy data for assessments
-  const assessments = [
-    {
-      assessment_id: "ASM-001",
-      assessment_link: "https://example.com/assessment/1",
-      topic: "React Basics",
-      score: 85,
-    },
-    {
-      assessment_id: "ASM-002",
-      assessment_link: "https://example.com/assessment/2",
-      topic: "Node.js Fundamentals",
-      score: 90,
-    },
-    {
-      assessment_id: "ASM-003",
-      assessment_link: "https://example.com/assessment/3",
-      topic: "Soft Skills",
-      score: 78,
-    },
-    {
-      assessment_id: "ASM-004",
-      assessment_link: "https://example.com/assessment/4",
-      topic: "Interview Preparation",
-      score: 90,
-    },
-    {
-      assessment_id: "ASM-003",
-      assessment_link: "https://example.com/assessment/3",
-      topic: "Soft Skills",
-      score: 78,
-    },
-  ];
+  useEffect(() => {
+    fetchEmployeeById(empId)
+      .then(data => {
+        setEmployeeData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching employee data:', err);
+        setLoading(false);
+      });
+  }, [empId]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <span className="spinner-border text-primary" />
+      </div>
+    );
+  }
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'basic':
         return (
           <>
-            {/* Main Info Block */}
+            {/* Employee Info Block */}
             <div className="card border-0 shadow-sm">
               <div className="card-body p-4">
                 <div className="row g-4">
                   <div className="col-md-6">
-                    <strong>Employee ID:</strong> EMP123456
+                    <strong>Employee ID:</strong> {employeeData.empId}
                   </div>
                   <div className="col-md-6">
-                    <strong>Name:</strong> Aman Gupta
+                    <strong>Name:</strong> {employeeData.name}
                   </div>
                   <div className="col-md-6">
-                    <strong>Email:</strong> aman.gupta@example.com
+                    <strong>Email:</strong> {employeeData.email}
                   </div>
                   <div className="col-md-6">
-                    <strong>Date of Joining:</strong> 2023-01-01
+                    <strong>Date of Joining:</strong> {employeeData.doj}
                   </div>
                   <div className="col-md-6">
-                    <strong>Level:</strong> L2
+                    <strong>Level:</strong> {employeeData.level}
                   </div>
                   <div className="col-md-6">
-                    <strong>Primary Skill:</strong> React
+                    <strong>Primary Skill:</strong> {employeeData.primarySkill}
                   </div>
                   <div className="col-md-6">
-                    <strong>Secondary Skill:</strong> Node.js
+                    <strong>Secondary Skill:</strong> {/* Placeholder or '-' */}
+                    -
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Expandable Details Block */}
+            {/* Bench Details Block */}
             <div className="card mt-4 border-0 shadow-sm">
               <div className="card-body p-4">
                 <h5 className="mb-4">Bench Details</h5>
                 <div className="row g-4">
                   <div className="col-md-6">
-                    <strong>Department Name:</strong> Engineering
+                    <strong>Department Name:</strong> {employeeData.departmentName}
                   </div>
                   <div className="col-md-6">
-                    <strong>Location:</strong> Bengaluru
+                    <strong>Location:</strong> {employeeData.location}
                   </div>
                   <div className="col-md-6">
-                    <strong>Aging:</strong> 30 days
+                    <strong>Aging:</strong> {employeeData.agingDays} days
                   </div>
                   <div className="col-md-6">
-                    <strong>Bench Start Date:</strong> 2024-05-01
+                    <strong>Bench Start Date:</strong> {employeeData.benchStartDate}
                   </div>
                   <div className="col-md-6">
-                    <strong>Bench End Date:</strong> --
+                    <strong>Bench End Date:</strong> {employeeData.benchEndDate || '--'}
                   </div>
                   <div className="col-md-6">
-                    <strong>Status:</strong> On Bench
+                    <strong>Status:</strong>{" "}
+                    {employeeData.isDeployable ? "Deployable" : "Not Deployable"}
                   </div>
                 </div>
               </div>
             </div>
           </>
         );
-      
+
       case 'training':
         return (
           <div className="card border-0 shadow-sm">
@@ -133,63 +125,63 @@ function Dashboard() {
 
       case 'assessment':
         return (
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-4">
-            <h5 className="mb-4">Assessment Details</h5>
-            <div className="table-responsive">
-              <table className="table table-bordered align-middle">
-                <thead className="table-light">
-                  <tr>
-                    <th>Assessment ID</th>
-                    <th>Assessment Link</th>
-                    <th>Topic</th>
-                    <th>Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assessments.map((a) => (
-                    <tr key={a.assessment_id}>
-                      <td>{a.assessment_id}</td>
-                      <td>
-                        <a href={a.assessment_link} target="_blank" rel="noopener noreferrer">
-                          View Assessment
-                        </a>
-                      </td>
-                      <td>{a.topic}</td>
-                      <td>{a.score}</td>
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-4">
+              <h5 className="mb-4">Assessment Details</h5>
+              <div className="table-responsive">
+                <table className="table table-bordered align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Assessment ID</th>
+                      <th>Assessment Link</th>
+                      <th>Topic</th>
+                      <th>Score</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {assessments.map((a) => (
+                      <tr key={a.assessment_id}>
+                        <td>{a.assessment_id}</td>
+                        <td>
+                          <a href={a.assessment_link} target="_blank" rel="noopener noreferrer">
+                            View Assessment
+                          </a>
+                        </td>
+                        <td>{a.topic}</td>
+                        <td>{a.score}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      );
+        );
 
       case 'interview':
         return (
-            <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
-                <h5 className="mb-4">Interview Details</h5>
-                <div className="row g-4">
+              <h5 className="mb-4">Interview Details</h5>
+              <div className="row g-4">
                 <div className="col-md-6">
-                    <strong>Interview ID:</strong> INT-2024-001
-                </div>
-                <div className="col-md-6">
-                    <strong>Date:</strong> 2024-07-01
+                  <strong>Interview ID:</strong> INT-2024-001
                 </div>
                 <div className="col-md-6">
-                    <strong>Panel:</strong> John Doe, Priya Sharma
+                  <strong>Date:</strong> 2024-07-01
                 </div>
                 <div className="col-md-6">
-                    <strong>Feedback:</strong> Good technical skills.
+                  <strong>Panel:</strong> John Doe, Priya Sharma
                 </div>
                 <div className="col-md-6">
-                    <strong>Status:</strong> Selected
+                  <strong>Feedback:</strong> Good technical skills.
                 </div>
+                <div className="col-md-6">
+                  <strong>Status:</strong> Selected
                 </div>
+              </div>
             </div>
-            </div>
+          </div>
         );
     }
   };
@@ -217,13 +209,13 @@ function Dashboard() {
                 <i className="fas fa-camera"></i>
               </button>
             </div>
-            <h3 className="mt-3 mb-1">Aman Gupta</h3>
-            <p className="text-muted mb-3">Software Developer</p>
+            <h3 className="mt-3 mb-1">{employeeData?.name || "Employee"}</h3>
+            <p className="text-muted mb-3">{employeeData?.email || "email@example.com"}</p>
           </div>
         </div>
 
+        {/* Tabs and Content */}
         <div className="row">
-          {/* Vertical Tabs */}
           <div className="col-md-3">
             <div className="nav flex-column nav-pills">
               <button className={`nav-link ${activeTab === 'basic' ? 'active' : ''}`} onClick={() => setActiveTab('basic')}>

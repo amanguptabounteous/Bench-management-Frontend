@@ -1,21 +1,15 @@
 /* GlobalNav.css */
 
-/* Default: solid grey text */
+/* Gradient hover - already perfect */
 .gradient-hover {
-  color: #6c757d; /* Bootstrap's default text-secondary grey */
+  color: #6c757d;
   font-weight: 600;
   position: relative;
   transition: color 0.3s ease-in-out;
 }
 
-/* On hover: apply gradient to text */
 .gradient-hover:hover {
-  background: linear-gradient(
-    to right,
-    #ff69b4,
-    #fcd34d,
-    #8b5cf6
-  );
+  background: linear-gradient(to right, #ff69b4, #fcd34d, #8b5cf6);
   background-size: 200% auto;
   background-position: left center;
   background-clip: text;
@@ -27,4 +21,27 @@
 
 .gradient-hover:hover {
   background-position: right center;
+}
+
+/* Navbar hide/reveal transitions */
+.custom-navbar {
+  transition: top 0.4s ease-in-out, box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  z-index: 999;
+}
+
+.custom-navbar.hide {
+  top: -80px;
+  position: fixed;
+}
+
+.custom-navbar.show {
+  top: 0;
+  position: fixed;
+}
+
+/* Optional polish */
+.navbar-light {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #eee;
 }

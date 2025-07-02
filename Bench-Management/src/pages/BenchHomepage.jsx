@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Form, Card, Row, Col, InputGroup, Spinner, Button } from "react-bootstrap";
 import { fetchBenchDetails } from "../services/benchService";
+import { Link } from "react-router-dom";
 
 function BenchHomepage() {
   const [benchData, setBenchData] = useState([]);
@@ -34,7 +35,7 @@ function BenchHomepage() {
     });
 
   return (
-    <Container className="mt-4 rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px" }}>
+    <Container className="rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px", marginTop: "80px" }}>
       {/* Search and Filter Controls */}
       <Form className="mb-3">
         <div className="d-flex flex-wrap align-items-center gap-3">
@@ -88,32 +89,37 @@ function BenchHomepage() {
         <Row>
           {filteredData.map((person) => (
             <Col xs={12} key={person.empId} className="mb-2">
-              <Card className="shadow-sm" style={{ height: "70px" }}>
-                <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
-                  <div>
-                    <strong>{person.name}</strong>{" "}
-                    <span className="text-muted">({person.empId})</span>
-                    <div style={{ fontSize: "0.9rem", color: "#666" }}>
-                      Dept: {person.departmentName}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
+              <Link
+                to={`/dashboard/${person.empId}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <Card className="shadow-sm" style={{ height: "70px" }}>
+                  <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
                     <div>
-                      <small className="text-muted">
-                        Aging: {person.agingDays} days
-                      </small>
+                      <strong>{person.name}</strong>{" "}
+                      <span className="text-muted">({person.empId})</span>
+                      <div style={{ fontSize: "0.9rem", color: "#666" }}>
+                        Dept: {person.departmentName}
+                      </div>
                     </div>
-                    <div>
-                      <small
-                        className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"
-                          }`}
-                      >
-                        {person.isDeployable ? "Deployable" : "Not Deployable"}
-                      </small>
+                    <div style={{ textAlign: "right" }}>
+                      <div>
+                        <small className="text-muted">
+                          Aging: {person.agingDays} days
+                        </small>
+                      </div>
+                      <div>
+                        <small
+                          className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"
+                            }`}
+                        >
+                          {person.isDeployable ? "Deployable" : "Not Deployable"}
+                        </small>
+                      </div>
                     </div>
-                  </div>
-                </Card.Body>
-              </Card>
+                  </Card.Body>
+                </Card>
+              </Link>
             </Col>
           ))}
         </Row>
