@@ -1,0 +1,76 @@
+
+
+.gradient-hover-border{
+    border: 2px ;
+    
+}
+
+.gradient-hover-border:hover {
+    border: 1px solid black;
+    transition: border-color 0.3s ease-in-out;
+}
+
+
+
+.animated-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: auto;
+  height: 40px;
+  background: transparent;
+  border: 1px solid #6c09b856;
+  outline: none;
+  transition: 1s ease-in-out;
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1;
+  text-align: center;
+  margin-left: auto; /* optional: aligns better with flex */
+  margin-left: 0;
+}
+
+.animated-btn svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  fill: none;
+  stroke: #4522af;
+  stroke-dasharray: 300 1000; /* Increase dash length */
+  stroke-dashoffset: 300;
+  transition: 1s ease-in-out;
+  width: 100%; /* stretch full width */
+  height: 100%;
+  z-index: -1;
+}
+
+.animated-btn:hover {
+  
+}
+
+.animated-btn:hover svg {
+    stroke-dashoffset: -480;
+}
+
+.animated-btn span {
+  color: black;
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding: 0 1rem;
+}
+
+.animated-btn-wide svg {
+  stroke-dasharray: 2400 4800;
+  stroke-dashoffset: 2400;
+}
+
+.animated-btn-wide svg polyline {
+  /* Optional visual tweak: rounded corners */
+  stroke-linejoin: round;
+}

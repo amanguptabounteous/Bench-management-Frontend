@@ -6,6 +6,7 @@ import GlobalNavbar from './components/GlobalNav';
 import BenchHomepage from './pages/BenchHomepage';
 import Dashboard from './pages/Dashboard';
 import AssessmentLanding from './pages/AssessmentSeperateComp/AssessmentHome';
+import AssignAssessment from './pages/AssessmentSeperateComp/AssignAssesment';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/home" element={<BenchHomepage />} />
         <Route path="/dashboard/:empId" element={<Dashboard />} />
         <Route path="/assessmentcomp" element={<AssessmentLanding />} />
+        <Route path="/assign-assessment" element={<AssignAssessment />} />
       </Routes>
     </>
   );

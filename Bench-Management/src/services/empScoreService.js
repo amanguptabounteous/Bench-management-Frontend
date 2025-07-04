@@ -14,3 +14,18 @@ export async function fetchEmployeeScore(empId) {
     throw error;
   }
 }
+
+export async function fetchAllEmployeeScoresbyTopic(topic) {
+  try {
+    const response = await fetch(`${BASE_URL}/bms/scores/filter?topic=${topic}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server error: ${response.status} - ${errorText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch employee scores for topic ${topic}:`, error);
+    throw error;
+  }
+}

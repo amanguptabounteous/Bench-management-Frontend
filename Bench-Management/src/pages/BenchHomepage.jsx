@@ -56,13 +56,13 @@ function BenchHomepage() {
             className="me-2"
           />
 
-          <Button
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => setSortAsc(!sortAsc)}
-          >
-            Sort by Aging {sortAsc ? "↑" : "↓"}
-          </Button>
+          <button className="animated-btn" onClick={() => setSortAsc(!sortAsc)}>
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span>Sort by Aging {sortAsc ? "↑" : "↓"}</span>
+          </button>
+
         </div>
       </Form>
 
@@ -93,7 +93,7 @@ function BenchHomepage() {
                 to={`/dashboard/${person.empId}`}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <Card className="shadow-sm" style={{ height: "70px" }}>
+                <Card className="shadow-sm gradient-hover-border" style={{ height: "70px" }}>
                   <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
                     <div>
                       <strong>{person.name}</strong>{" "}

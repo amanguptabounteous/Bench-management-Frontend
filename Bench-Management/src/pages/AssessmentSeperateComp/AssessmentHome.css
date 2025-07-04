@@ -21,6 +21,17 @@
   background-color: #e9ecef;
 }
 
+.clickable:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.card h5 {
+  font-weight: 600;
+}
+
+
 /* Grid Responsiveness */
 @media (max-width: 576px) {
   .topic-card {
@@ -28,3 +39,4 @@
     padding: 12px;
   }
 }
+
