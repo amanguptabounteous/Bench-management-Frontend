@@ -42,6 +42,9 @@ function GlobalNavbar() {
           />
         </Navbar.Brand>
         <Nav className="ms-auto gap-3">
+          <Nav.Link as={Link} to="/manage-users" className="gradient-hover">
+            Manage Users
+          </Nav.Link>
           <Nav.Link as={Link} to="/assessmentcomp" className="gradient-hover">
             Assessment
           </Nav.Link>
