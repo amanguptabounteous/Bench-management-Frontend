@@ -2,7 +2,7 @@
 
 /* Gradient hover - already perfect */
 .gradient-hover {
-  color: #6c757d;
+  color: whitesmoke;
   font-weight: 600;
   position: relative;
   transition: color 0.3s ease-in-out;
@@ -23,11 +23,18 @@
   background-position: right center;
 }
 
+.gradient-hover:focus{
+  color: rgba(245, 245, 245, 0.477);
+  font-size: 1.1rem;
+  transition: color 0.3s ease-in-out, font-size 0.3s ease-in-out;
+}
+
 /* Navbar hide/reveal transitions */
 .custom-navbar {
   transition: top 0.4s ease-in-out, box-shadow 0.3s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   z-index: 999;
+  height: 80px;
 }
 
 .custom-navbar.hide {
@@ -38,10 +45,12 @@
 .custom-navbar.show {
   top: 0;
   position: fixed;
+  
 }
 
 /* Optional polish */
 .navbar-light {
-  background-color: #ffffff !important;
+  background-color: #301c6c !important;
   border-bottom: 1px solid #eee;
 }
+

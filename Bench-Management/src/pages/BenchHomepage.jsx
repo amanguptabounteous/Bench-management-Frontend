@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Form, Card, Row, Col, InputGroup, Spinner, Button } from "react-bootstrap";
 import { fetchBenchDetails } from "../services/benchService";
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 
 function BenchHomepage() {
   const [benchData, setBenchData] = useState([]);
@@ -22,17 +23,19 @@ function BenchHomepage() {
       });
   }, []);
 
-  const filteredData = benchData
-    .filter((person) => {
-      const matchesSearch =
-        person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        person.empId.toString().includes(searchTerm);
-      const matchesDeployable = !filterDeployable || person.isDeployable;
-      return matchesSearch && matchesDeployable;
-    })
-    .sort((a, b) => {
-      return sortAsc ? a.agingDays - b.agingDays : b.agingDays - a.agingDays;
-    });
+  const filteredData = useMemo(() => {
+    return [...benchData]
+      .filter((person) => {
+        const matchesSearch =
+          person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          person.empId.toString().includes(searchTerm);
+        const matchesDeployable = !filterDeployable || person.isDeployable;
+        return matchesSearch && matchesDeployable;
+      })
+      .sort((a, b) =>
+        sortAsc ? a.agingDays - b.agingDays : b.agingDays - a.agingDays
+      );
+  }, [benchData, searchTerm, filterDeployable, sortAsc]);
 
   return (
     <Container className="rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px", marginTop: "80px" }}>
@@ -56,12 +59,17 @@ function BenchHomepage() {
             className="me-2"
           />
 
-          <button className="animated-btn" onClick={() => setSortAsc(!sortAsc)}>
+          <button
+            type="button"
+            className="animated-btn"
+            onClick={() => setSortAsc((prev) => !prev)}
+          >
             <svg preserveAspectRatio="none" viewBox="0 0 100 100">
               <polyline points="100,0 100,100 0,100 0,0 100,0" />
             </svg>
             <span>Sort by Aging {sortAsc ? "↑" : "↓"}</span>
           </button>
+
 
         </div>
       </Form>
