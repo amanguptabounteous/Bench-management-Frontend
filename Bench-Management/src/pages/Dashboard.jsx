@@ -252,6 +252,7 @@ function Dashboard() {
                     subtitle={`${score.topic} — ${score.empScore}/${score.totalScore}`}
                   >
                     <div className="row g-4">
+                      <div className='col-md-6'><strong>Trainer Name:</strong> {score.trainerName}</div>
                       <div className="col-md-6">
                         <strong>Name:</strong> {score.name}
                       </div>
