@@ -54,3 +54,57 @@
   border-bottom: 1px solid #eee;
 }
 
+/* Optional: Better collapse transition */
+.navbar-collapse {
+  transition: all 0.3s ease;
+}
+
+/* Prevent extra spacing in collapsed menu */
+.navbar-nav .nav-link {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+}
+
+/* Ensure navbar brand and toggler are aligned properly */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-img {
+  height: 30px;
+  width: auto;
+}
+
+@media (max-width: 576px) {
+  .logo-img {
+    height: 24px;
+  }
+}
+
+.bg-navbar {
+  background-color: #301c6c;
+  padding: 0.5rem 1rem;
+  width: 100vw; /* force full viewport width */
+}
+
+.custom-navbar .navbar-brand {
+  display: flex;
+  align-items: center;
+    /* reduce extra vertical space */
+}
+
+@media (max-width: 991.98px) {
+  .bg-navbar {
+    min-width: 100%;
+    margin: 0;
+    padding: 1.5rem;
+  }
+}
+
+
+
+
+
