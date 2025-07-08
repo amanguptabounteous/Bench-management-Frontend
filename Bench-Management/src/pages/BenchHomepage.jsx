@@ -1,10 +1,17 @@
-
-
-import React, { useEffect, useState } from "react";
-import { Container, Form, Card, Row, Col, Spinner } from "react-bootstrap";
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Container,
+  Table,
+  Form,
+  Spinner,
+  Row,
+  Col,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap";
 import { fetchBenchDetails } from "../services/benchService";
-import { Link, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import "./BenchHomepage.css";
 
 function BenchHomepage() {
   const [benchData, setBenchData] = useState([]);
@@ -12,9 +19,11 @@ function BenchHomepage() {
   const [loading, setLoading] = useState(true);
   const [sortAsc, setSortAsc] = useState(true);
   const [filterDeployable, setFilterDeployable] = useState(false);
+  const [filterLevel, setFilterLevel] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterSkill, setFilterSkill] = useState("");
 
   const navigate = useNavigate();
-  
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -30,13 +39,16 @@ function BenchHomepage() {
           console.error("Error fetching bench data:", error);
           setLoading(false);
           if (error.message.includes("401")) {
-            // auto logout if unauthorized
             localStorage.removeItem("token");
             navigate("/signin");
           }
         });
     }
   }, [navigate]);
+
+  const uniqueLevels = [...new Set(benchData.map((emp) => emp.level))];
+  const uniqueLocations = [...new Set(benchData.map((emp) => emp.location))];
+  const uniqueSkills = [...new Set(benchData.map((emp) => emp.primarySkill))];
 
   const filteredData = useMemo(() => {
     return [...benchData]
@@ -45,90 +57,197 @@ function BenchHomepage() {
           person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           person.empId.toString().includes(searchTerm);
         const matchesDeployable = !filterDeployable || person.isDeployable;
-        return matchesSearch && matchesDeployable;
+        const matchesLevel = !filterLevel || person.level === filterLevel;
+        const matchesLocation = !filterLocation || person.location === filterLocation;
+        const matchesSkill = !filterSkill || person.primarySkill === filterSkill;
+        return (
+          matchesSearch &&
+          matchesDeployable &&
+          matchesLevel &&
+          matchesLocation &&
+          matchesSkill
+        );
       })
       .sort((a, b) =>
         sortAsc ? a.agingDays - b.agingDays : b.agingDays - a.agingDays
       );
-  }, [benchData, searchTerm, filterDeployable, sortAsc]);
+  }, [benchData, searchTerm, filterDeployable, sortAsc, filterLevel, filterLocation, filterSkill]);
 
   return (
-    <Container className="rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px", marginTop: "80px" }}>
-      <Form className="mb-3">
-        <div className="d-flex flex-wrap align-items-center gap-3">
-          <Form.Control
-            type="text"
-            placeholder="Search by name or emp ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="me-2"
-            style={{ maxWidth: "65%" }}
-          />
+    <Container fluid className="p-4" style={{ marginTop: "80px", maxWidth: "95vw" }}>
+      <Row className="mb-3 g-3 align-items-center">
+        <Col md={2}>
+          <div className="animated-btn">
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span style={{ padding: "0 0.5rem", flex: 1 }}>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or emp ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border-0 shadow-none w-100"
+              />
+            </span>
+          </div>
+        </Col>
 
-          <Form.Check
-            type="checkbox"
-            label="Only Deployable"
-            checked={filterDeployable}
-            onChange={(e) => setFilterDeployable(e.target.checked)}
-            className="me-2"
-          />
+        <Col md={2}>
+          <div className="animated-btn">
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span style={{ padding: "0 0.5rem", flex: 1 }}>
+              <Form.Select
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+                className="border-0 shadow-none w-100"
+              >
+                <option value="">Filter by Level</option>
+                {uniqueLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </Form.Select>
+            </span>
+          </div>
+        </Col>
 
+        <Col md={2}>
+          <div className="animated-btn">
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span style={{ flex: 1 }}>
+              <Form.Select
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="border-0 shadow-none w-100"
+              >
+                <option value="">Filter by Location</option>
+                {uniqueLocations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </Form.Select>
+            </span>
+          </div>
+        </Col>
+
+        <Col md={2}>
+          <div className="animated-btn">
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span style={{ flex: 1 }}>
+              <Form.Select
+                value={filterSkill}
+                onChange={(e) => setFilterSkill(e.target.value)}
+                className="border-0 shadow-none w-100"
+              >
+                <option value="">Filter by Skill</option>
+                {uniqueSkills.map((skill) => (
+                  <option key={skill} value={skill}>
+                    {skill}
+                  </option>
+                ))}
+              </Form.Select>
+            </span>
+          </div>
+        </Col>
+
+        <Col md={2}>
           <button
             type="button"
-            className="animated-btn"
+            className="animated-btn w-100"
+            onClick={() => setFilterDeployable((prev) => !prev)}
+          >
+            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+              <polyline points="100,0 100,100 0,100 0,0 100,0" />
+            </svg>
+            <span>{filterDeployable ? "✅ Deployable" : "Only Deployable"}</span>
+          </button>
+        </Col>
+
+        <Col md={2}>
+          <button
+            type="button"
+            className="animated-btn w-100"
             onClick={() => setSortAsc((prev) => !prev)}
           >
             <svg preserveAspectRatio="none" viewBox="0 0 100 100">
               <polyline points="100,0 100,100 0,100 0,0 100,0" />
             </svg>
-            <span>Sort by Aging {sortAsc ? "↑" : "↓"}</span>
+            <span>Sort Aging {sortAsc ? "↑" : "↓"}</span>
           </button>
+        </Col>
+      </Row>
 
-        </div>
-      </Form>
 
-      {loading && (
+      {loading ? (
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
         </div>
-      )}
+      ) : (
+        <Table bordered hover responsive className="bench-table shadow-sm align-middle">
+  <thead>
+    <tr>
+      <th>Emp ID</th>
+      <th>Name</th>
+      <th>Primary Skill</th>
+      <th>Level</th>
+      <th>Location</th>
+      <th>Aging</th>
+      <th>Deployable</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredData.map((person) => (
+      <tr key={person.empId}>
+        <td>{person.empId}</td>
+        <td>
+          <Link
+            to={`/dashboard/${person.empId}`}
+            style={{ textDecoration: "none", fontWeight: 500, color: "#212529" }}
+          >
+            {person.name}
+          </Link>
+        </td>
+        <td>{person.primarySkill}</td>
+        <td>{person.level}</td>
+        <td>{person.location}</td>
+        <td>
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip>
+                Dept: {person.departmentName}
+                <br />
+                Bench: {person.benchStartDate} to {person.benchEndDate}
+              </Tooltip>
+            }
+          >
+            <span className="aging-tooltip">{person.agingDays} days</span>
+          </OverlayTrigger>
+        </td>
+        <td>
+          <span
+            className={`deploy-badge ${
+              person.isDeployable ? "text-deployable" : "text-not-deployable"
+            }`}
+          >
+            {person.isDeployable ? "Yes" : "No"}
+          </span>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</Table>
 
-      {!loading && filteredData.length === 0 && (
-        <p className="text-muted text-center">No matching bench employees found.</p>
       )}
-
-      <div style={{ maxHeight: "370px", overflowY: "auto", paddingRight: "4px" }}>
-        <Row>
-          {filteredData.map((person) => (
-            <Col xs={12} key={person.empId} className="mb-2">
-              <Link
-                to={`/dashboard/${person.empId}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <Card className="shadow-sm gradient-hover-border" style={{ height: "70px" }}>
-                  <Card.Body className="d-flex justify-content-between align-items-center py-2 px-3">
-                    <div>
-                      <strong>{person.name}</strong>{" "}
-                      <span className="text-muted">({person.empId})</span>
-                      <div style={{ fontSize: "0.9rem", color: "#666" }}>
-                        Dept: {person.departmentName}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div><small className="text-muted">Aging: {person.agingDays} days</small></div>
-                      <div>
-                        <small className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"}`}>
-                          {person.isDeployable ? "Deployable" : "Not Deployable"}
-                        </small>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Link>
-            </Col>
-          ))}
-        </Row>
-      </div>
     </Container>
   );
 }

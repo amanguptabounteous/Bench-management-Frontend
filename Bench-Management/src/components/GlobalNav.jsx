@@ -55,9 +55,6 @@ function GlobalNavbar() {
           <Nav.Link as={Link} to="/assessmentcomp" className="gradient-hover">
             Assessment
           </Nav.Link>
-          <Nav.Link as={Link} to="/dashboard" className="gradient-hover">
-            Dashboard
-          </Nav.Link>
           <Nav.Link onClick={handleLogout} className="gradient-hover">
             Log Out
           </Nav.Link>
