@@ -1,11 +1,18 @@
 import { Navbar, Nav, Container } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import authService from '../services/authService';
 import './GlobalNav.css';
 
 function GlobalNavbar() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate("/signin");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,7 +58,7 @@ function GlobalNavbar() {
           <Nav.Link as={Link} to="/dashboard" className="gradient-hover">
             Dashboard
           </Nav.Link>
-          <Nav.Link href="#logout" className="gradient-hover">
+          <Nav.Link onClick={handleLogout} className="gradient-hover">
             Log Out
           </Nav.Link>
         </Nav>
