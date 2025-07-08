@@ -1,7 +1,9 @@
+
+
 import React, { useEffect, useState } from "react";
-import { Container, Form, Card, Row, Col, InputGroup, Spinner, Button } from "react-bootstrap";
+import { Container, Form, Card, Row, Col, Spinner } from "react-bootstrap";
 import { fetchBenchDetails } from "../services/benchService";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 
 function BenchHomepage() {
@@ -11,17 +13,29 @@ function BenchHomepage() {
   const [sortAsc, setSortAsc] = useState(true);
   const [filterDeployable, setFilterDeployable] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    fetchBenchDetails()
-      .then((data) => {
-        setBenchData(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching bench data:", error);
-        setLoading(false);
-      });
-  }, []);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/signin");
+    } else {
+      fetchBenchDetails()
+        .then((data) => {
+          setBenchData(data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching bench data:", error);
+          setLoading(false);
+          if (error.message.includes("401")) {
+            // auto logout if unauthorized
+            localStorage.removeItem("token");
+            navigate("/signin");
+          }
+        });
+    }
+  }, [navigate]);
 
   const filteredData = useMemo(() => {
     return [...benchData]
@@ -39,7 +53,6 @@ function BenchHomepage() {
 
   return (
     <Container className="rounded shadow-sm p-4 bg-light" style={{ maxWidth: "1100px", marginTop: "80px" }}>
-      {/* Search and Filter Controls */}
       <Form className="mb-3">
         <div className="d-flex flex-wrap align-items-center gap-3">
           <Form.Control
@@ -70,12 +83,9 @@ function BenchHomepage() {
             <span>Sort by Aging {sortAsc ? "↑" : "↓"}</span>
           </button>
 
-
         </div>
       </Form>
 
-
-      {/* Loading Spinner */}
       {loading && (
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
@@ -86,14 +96,7 @@ function BenchHomepage() {
         <p className="text-muted text-center">No matching bench employees found.</p>
       )}
 
-      {/* Scrollable Card List */}
-      <div
-        style={{
-          maxHeight: "370px",
-          overflowY: "auto",
-          paddingRight: "4px",
-        }}
-      >
+      <div style={{ maxHeight: "370px", overflowY: "auto", paddingRight: "4px" }}>
         <Row>
           {filteredData.map((person) => (
             <Col xs={12} key={person.empId} className="mb-2">
@@ -111,16 +114,9 @@ function BenchHomepage() {
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
+                      <div><small className="text-muted">Aging: {person.agingDays} days</small></div>
                       <div>
-                        <small className="text-muted">
-                          Aging: {person.agingDays} days
-                        </small>
-                      </div>
-                      <div>
-                        <small
-                          className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"
-                            }`}
-                        >
+                        <small className={`fw-bold ${person.isDeployable ? "text-success" : "text-danger"}`}>
                           {person.isDeployable ? "Deployable" : "Not Deployable"}
                         </small>
                       </div>
