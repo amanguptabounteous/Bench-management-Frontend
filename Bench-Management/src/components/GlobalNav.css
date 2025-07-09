@@ -104,6 +104,11 @@
   }
 }
 
+/* GlobalNav.css */
+.custom-toggler .navbar-toggler-icon {
+  display: none;
+}
+
 
 
 
