@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Container, Row, Col, Form, Button, ListGroup } from 'react-bootstrap';
+import useBenchData from '../../services/useBenchData';
 
 const allEmployees = [
   { id: 101, name: 'Alice Sharma' },
@@ -10,6 +11,9 @@ const allEmployees = [
 ];
 
 function AssignAssessment() {
+  // Use loading from useBenchData to enforce authentication
+  const { loading } = useBenchData();
+
   const [step, setStep] = useState(1);
   const [link, setLink] = useState('');
   const [topic, setTopic] = useState('');
@@ -52,6 +56,14 @@ function AssignAssessment() {
     emp.name.toLowerCase().includes(search.toLowerCase()) ||
     emp.id.toString().includes(search)
   );
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <span className="spinner-border text-primary" />
+      </div>
+    );
+  }
 
   return (
     <Container className="py-5" style={{ marginTop: '80px' }}>

@@ -6,8 +6,11 @@ import { fetchEmployeeScore } from '../services/empScoreService';
 import { fetchInterviewCyclebyEmpId, fetchInterviewRoundsbyCycleId } from '../services/interviewService';
 import ExpandableCard from '../components/ExpandableCard';
 import './Dashboard.css';
+import useBenchData from '../services/useBenchData';
 
 function Dashboard() {
+  // Only use loading from useBenchData to check authentication/data fetch
+  const { loading: benchLoading } = useBenchData();
   const { empId } = useParams();
   const [activeTab, setActiveTab] = useState('basic');
   const [employeeData, setEmployeeData] = useState(null);
@@ -20,10 +23,8 @@ function Dashboard() {
   const [interviewRounds, setInterviewRounds] = useState({});
   const [interviewLoading, setInterviewLoading] = useState(true);
 
-
-
-
   useEffect(() => {
+    setLoading(true);
     fetchEmployeeById(empId)
       .then(data => {
         setEmployeeData(data);
@@ -34,6 +35,7 @@ function Dashboard() {
         setLoading(false);
       });
 
+    setTrainingLoading(true);
     fetchTrainingDetailsbyempID(empId)
       .then(data => {
         setTrainingData(data);
@@ -44,6 +46,7 @@ function Dashboard() {
         setTrainingLoading(false);
       });
 
+    setScoreLoading(true);
     fetchEmployeeScore(empId)
       .then(data => {
         setScoreData(data);
@@ -53,6 +56,8 @@ function Dashboard() {
         console.error('Error fetching assessment scores:', err);
         setScoreLoading(false);
       });
+
+    setInterviewLoading(true);
     fetchInterviewCyclebyEmpId(empId)
       .then(async (cycles) => {
         setInterviewCycles(cycles);
@@ -77,7 +82,7 @@ function Dashboard() {
 
   }, [empId]);
 
-  if (loading) {
+  if (benchLoading || loading) {
     return (
       <div className="text-center py-5">
         <span className="spinner-border text-primary" />
@@ -95,22 +100,22 @@ function Dashboard() {
               <div className="card-body p-4">
                 <div className="row g-4">
                   <div className="col-md-6">
-                    <strong>Employee ID:</strong> {employeeData.empId}
+                    <strong>Employee ID:</strong> {employeeData?.empId}
                   </div>
                   <div className="col-md-6">
-                    <strong>Name:</strong> {employeeData.name}
+                    <strong>Name:</strong> {employeeData?.name}
                   </div>
                   <div className="col-md-6">
-                    <strong>Email:</strong> {employeeData.email}
+                    <strong>Email:</strong> {employeeData?.email}
                   </div>
                   <div className="col-md-6">
-                    <strong>Date of Joining:</strong> {employeeData.doj}
+                    <strong>Date of Joining:</strong> {employeeData?.doj}
                   </div>
                   <div className="col-md-6">
-                    <strong>Level:</strong> {employeeData.level}
+                    <strong>Level:</strong> {employeeData?.level}
                   </div>
                   <div className="col-md-6">
-                    <strong>Primary Skill:</strong> {employeeData.primarySkill}
+                    <strong>Primary Skill:</strong> {employeeData?.primarySkill}
                   </div>
                   <div className="col-md-6">
                     <strong>Secondary Skill:</strong> {/* Placeholder or '-' */}
@@ -126,23 +131,23 @@ function Dashboard() {
                 <h5 className="mb-4">Bench Details</h5>
                 <div className="row g-4">
                   <div className="col-md-6">
-                    <strong>Department Name:</strong> {employeeData.departmentName}
+                    <strong>Department Name:</strong> {employeeData?.departmentName}
                   </div>
                   <div className="col-md-6">
-                    <strong>Location:</strong> {employeeData.location}
+                    <strong>Location:</strong> {employeeData?.location}
                   </div>
                   <div className="col-md-6">
-                    <strong>Aging:</strong> {employeeData.agingDays} days
+                    <strong>Aging:</strong> {employeeData?.agingDays} days
                   </div>
                   <div className="col-md-6">
-                    <strong>Bench Start Date:</strong> {employeeData.benchStartDate}
+                    <strong>Bench Start Date:</strong> {employeeData?.benchStartDate}
                   </div>
                   <div className="col-md-6">
-                    <strong>Bench End Date:</strong> {employeeData.benchEndDate || '--'}
+                    <strong>Bench End Date:</strong> {employeeData?.benchEndDate || '--'}
                   </div>
                   <div className="col-md-6">
                     <strong>Status:</strong>{" "}
-                    {employeeData.isDeployable ? "Deployable" : "Not Deployable"}
+                    {employeeData?.isDeployable ? "Deployable" : "Not Deployable"}
                   </div>
                 </div>
               </div>
@@ -211,9 +216,6 @@ function Dashboard() {
           </div>
         );
 
-
-
-
       case 'assessment':
         if (scoreLoading) {
           return (
@@ -267,13 +269,11 @@ function Dashboard() {
                       </div>
                     </div>
                   </ExpandableCard>
-
                 ))}
               </div>
             </div>
           </div>
         );
-
 
       case 'interview':
         if (interviewLoading) {
@@ -349,6 +349,8 @@ function Dashboard() {
           </div>
         );
 
+      default:
+        return null;
     }
   };
 

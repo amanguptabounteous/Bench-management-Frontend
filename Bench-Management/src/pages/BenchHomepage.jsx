@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Container,
   Table,
@@ -9,42 +9,18 @@ import {
   OverlayTrigger,
   Tooltip,
 } from "react-bootstrap";
-import { fetchBenchDetails } from "../services/benchService";
 import { useNavigate, Link } from "react-router-dom";
 import "./BenchHomepage.css";
+import useBenchData from "../services/useBenchData";
 
 function BenchHomepage() {
-  const [benchData, setBenchData] = useState([]);
+  const { benchData, loading } = useBenchData();
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
   const [sortAsc, setSortAsc] = useState(true);
   const [filterDeployable, setFilterDeployable] = useState(false);
   const [filterLevel, setFilterLevel] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [filterSkill, setFilterSkill] = useState("");
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/signin");
-    } else {
-      fetchBenchDetails()
-        .then((data) => {
-          setBenchData(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching bench data:", error);
-          setLoading(false);
-          if (error.message.includes("401")) {
-            localStorage.removeItem("token");
-            navigate("/signin");
-          }
-        });
-    }
-  }, [navigate]);
 
   const uniqueLevels = [...new Set(benchData.map((emp) => emp.level))];
   const uniqueLocations = [...new Set(benchData.map((emp) => emp.location))];
@@ -186,67 +162,65 @@ function BenchHomepage() {
         </Col>
       </Row>
 
-
       {loading ? (
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
         </div>
       ) : (
         <Table bordered hover responsive className="bench-table shadow-sm align-middle">
-  <thead>
-    <tr>
-      <th>Emp ID</th>
-      <th>Name</th>
-      <th>Primary Skill</th>
-      <th>Level</th>
-      <th>Location</th>
-      <th>Aging</th>
-      <th>Deployable</th>
-    </tr>
-  </thead>
-  <tbody>
-    {filteredData.map((person) => (
-      <tr key={person.empId}>
-        <td>{person.empId}</td>
-        <td>
-          <Link
-            to={`/dashboard/${person.empId}`}
-            style={{ textDecoration: "none", fontWeight: 500, color: "#212529" }}
-          >
-            {person.name}
-          </Link>
-        </td>
-        <td>{person.primarySkill}</td>
-        <td>{person.level}</td>
-        <td>{person.location}</td>
-        <td>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip>
-                Dept: {person.departmentName}
-                <br />
-                Bench: {person.benchStartDate} to {person.benchEndDate}
-              </Tooltip>
-            }
-          >
-            <span className="aging-tooltip">{person.agingDays} days</span>
-          </OverlayTrigger>
-        </td>
-        <td>
-          <span
-            className={`deploy-badge ${
-              person.isDeployable ? "text-deployable" : "text-not-deployable"
-            }`}
-          >
-            {person.isDeployable ? "Yes" : "No"}
-          </span>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</Table>
-
+          <thead>
+            <tr>
+              <th>Emp ID</th>
+              <th>Name</th>
+              <th>Primary Skill</th>
+              <th>Level</th>
+              <th>Location</th>
+              <th>Aging</th>
+              <th>Deployable</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((person) => (
+              <tr key={person.empId}>
+                <td>{person.empId}</td>
+                <td>
+                  <Link
+                    to={`/dashboard/${person.empId}`}
+                    style={{ textDecoration: "none", fontWeight: 500, color: "#212529" }}
+                  >
+                    {person.name}
+                  </Link>
+                </td>
+                <td>{person.primarySkill}</td>
+                <td>{person.level}</td>
+                <td>{person.location}</td>
+                <td>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip>
+                        Dept: {person.departmentName}
+                        <br />
+                        Bench: {person.benchStartDate} to {person.benchEndDate}
+                      </Tooltip>
+                    }
+                  >
+                    <span className="aging-tooltip">{person.agingDays} days</span>
+                  </OverlayTrigger>
+                </td>
+                <td>
+                  <span
+                    className={`deploy-badge ${
+                      person.isDeployable ? "text-deployable" : "text-not-deployable"
+                    }`}
+                  >
+                    {person.isDeployable ? "Yes" : "No"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </Container>
   );
