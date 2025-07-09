@@ -1,0 +1,115 @@
+/* GlobalNav.css */
+
+/* Gradient hover - already perfect */
+.gradient-hover {
+  color: whitesmoke;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s ease-in-out;
+}
+
+.gradient-hover:hover {
+  background: linear-gradient(to right, #ff69b4, #fcd34d, #8b5cf6);
+  background-size: 200% auto;
+  background-position: left center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  transition: background-position 0.7s ease-in-out;
+}
+
+.gradient-hover:hover {
+  background-position: right center;
+}
+
+.gradient-hover:focus{
+  color: rgba(245, 245, 245, 0.477);
+  font-size: 1.1rem;
+  transition: color 0.3s ease-in-out, font-size 0.3s ease-in-out;
+}
+
+/* Navbar hide/reveal transitions */
+.custom-navbar {
+  transition: top 0.4s ease-in-out, box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  z-index: 999;
+  height: 80px;
+}
+
+.custom-navbar.hide {
+  top: -80px;
+  position: fixed;
+}
+
+.custom-navbar.show {
+  top: 0;
+  position: fixed;
+  
+}
+
+/* Optional polish */
+.navbar-light {
+  background-color: #301c6c !important;
+  border-bottom: 1px solid #eee;
+}
+
+/* Optional: Better collapse transition */
+.navbar-collapse {
+  transition: all 0.3s ease;
+}
+
+/* Prevent extra spacing in collapsed menu */
+.navbar-nav .nav-link {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+}
+
+/* Ensure navbar brand and toggler are aligned properly */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-img {
+  height: 30px;
+  width: auto;
+}
+
+@media (max-width: 576px) {
+  .logo-img {
+    height: 24px;
+  }
+}
+
+.bg-navbar {
+  background-color: #301c6c;
+  padding: 0.5rem 1rem;
+  width: 100vw; /* force full viewport width */
+}
+
+.custom-navbar .navbar-brand {
+  display: flex;
+  align-items: center;
+    /* reduce extra vertical space */
+}
+
+@media (max-width: 991.98px) {
+  .bg-navbar {
+    min-width: 100%;
+    margin: 0;
+    padding: 1.5rem;
+  }
+}
+
+/* GlobalNav.css */
+.custom-toggler .navbar-toggler-icon {
+  display: none;
+}
+
+
+
+
+
