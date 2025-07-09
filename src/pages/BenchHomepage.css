@@ -1,0 +1,48 @@
+/* Clean and modern table */
+.bench-table {
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.bench-table th {
+  background: #f8f9fa;
+  border: none;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+.bench-table td {
+  background: #fff;
+  border: none;
+  vertical-align: middle;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 0.95rem;
+}
+
+.bench-table tr:hover td {
+  background: #f1f3f5;
+}
+
+.deploy-badge {
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+.text-deployable {
+  color: #198754;
+  background-color: #d1e7dd;
+}
+
+.text-not-deployable {
+  color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.aging-tooltip {
+  font-weight: 600;
+  color: #495057;
+  cursor: help;
+}
