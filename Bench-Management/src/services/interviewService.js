@@ -20,3 +20,25 @@ export async function fetchInterviewRoundsbyCycleId(cycleId) {
     throw error;
   }
 }
+
+// ✅ NEW: Add interview cycle
+export async function addInterviewCycle(empId, cycleData) {
+  try {
+    const response = await apiClient.post(`/bms/interviews/${empId}/cycles-add`, cycleData);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to add interview cycle for employee ID ${empId}:`, error);
+    throw error;
+  }
+}
+
+// ✅ NEW: Add interview round to a cycle
+export async function addInterviewRound(cycleId, roundData) {
+  try {
+    const response = await apiClient.post(`/bms/interviews/cycles/${cycleId}/add`, roundData);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to add interview round to cycle ${cycleId}:`, error);
+    throw error;
+  }
+}

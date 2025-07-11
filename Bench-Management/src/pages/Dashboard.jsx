@@ -4,9 +4,11 @@ import { fetchEmployeeById } from '../services/benchService';
 import { fetchTrainingDetailsbyempID } from '../services/trainingService';
 import { fetchEmployeeScore } from '../services/empScoreService';
 import { fetchInterviewCyclebyEmpId, fetchInterviewRoundsbyCycleId } from '../services/interviewService';
+import { addInterviewCycle, addInterviewRound } from '../services/interviewService';
 import ExpandableCard from '../components/ExpandableCard';
 import './Dashboard.css';
 import useBenchData from '../services/useBenchData';
+
 
 function Dashboard() {
   // Only use loading from useBenchData to check authentication/data fetch
@@ -22,6 +24,80 @@ function Dashboard() {
   const [interviewCycles, setInterviewCycles] = useState([]);
   const [interviewRounds, setInterviewRounds] = useState({});
   const [interviewLoading, setInterviewLoading] = useState(true);
+  const [showCycleForm, setShowCycleForm] = useState(false);
+  const [showRoundFormId, setShowRoundFormId] = useState(null); // for cycle-specific round forms
+
+  const [newCycle, setNewCycle] = useState({ client: '', title: '' });
+  const [newRound, setNewRound] = useState({
+    date: '', panel: '', status: '', feedback: '', detailedFeedback: '', review: '', round: '', department: ''
+  });
+
+
+  const handleAddCycle = async () => {
+  try {
+    await addInterviewCycle(empId, newCycle);
+    setShowCycleForm(false);
+    setNewCycle({ client: '', title: '' });
+    reloadInterviewData();
+  } catch (err) {
+    alert("Error adding cycle");
+  }
+};
+
+const handleAddRound = async (cycle) => {
+  const roundPayload = {
+  empId: Number(empId),
+  date: newRound.date,
+  panel: newRound.panel,
+  status: newRound.status,
+  feedback: newRound.feedback,
+  detailedFeedback: newRound.detailedFeedback,
+  review: newRound.review,
+  round: Number(newRound.round),
+  department: newRound.department,
+  client: cycle.client // 🧠 important to include
+};
+
+
+  console.log("🚀 Submitting round payload:", roundPayload);
+
+  try {
+    await addInterviewRound(cycle.cycleId, roundPayload);
+    setShowRoundFormId(null);
+    setNewRound({
+      date: '',
+      panel: '',
+      status: '',
+      feedback: '',
+      detailedFeedback: '',
+      review: '',
+      round: '',
+      department: ''
+    });
+    reloadInterviewData();
+  } catch (err) {
+    console.error("❌ Error adding round:", err);
+    alert("Error adding round");
+  }
+};
+
+
+const reloadInterviewData = async () => {
+  setInterviewLoading(true);
+  try {
+    const cycles = await fetchInterviewCyclebyEmpId(empId);
+    const roundsMap = {};
+    for (const cycle of cycles) {
+      const rounds = await fetchInterviewRoundsbyCycleId(cycle.cycleId);
+      roundsMap[cycle.cycleId] = rounds;
+    }
+    setInterviewCycles(cycles);
+    setInterviewRounds(roundsMap);
+  } catch (err) {
+    console.error(err);
+  }
+  setInterviewLoading(false);
+};
 
   useEffect(() => {
     setLoading(true);
@@ -296,58 +372,203 @@ function Dashboard() {
         }
 
         return (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h5 className="mb-4">Interview Details</h5>
-              <div
-                style={{
-                  maxHeight: '350px',
-                  overflowY: 'auto',
-                  paddingRight: '4px',
-                }}
-              >
-                {interviewCycles.map((cycle) => (
-                  <ExpandableCard
-                    key={cycle.cycleId}
-                    title={cycle.client}
-                    subtitle={cycle.title}
-                  >
-                    {interviewRounds[cycle.cycleId] && interviewRounds[cycle.cycleId].length > 0 ? (
-                      <div className="table-responsive">
-                        <table className="table table-bordered align-middle">
-                          <thead className="table-light">
-                            <tr>
-                              <th>Round</th>
-                              <th>Date</th>
-                              <th>Panel</th>
-                              <th>Status</th>
-                              <th>Feedback</th>
-                              <th>Review</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {interviewRounds[cycle.cycleId].map((round) => (
-                              <tr key={round.interviewId}>
-                                <td>{round.round}</td>
-                                <td>{round.date}</td>
-                                <td>{round.panel}</td>
-                                <td>{round.status}</td>
-                                <td>{round.feedback}</td>
-                                <td>{round.review}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p className="text-muted">No rounds found for this cycle.</p>
-                    )}
-                  </ExpandableCard>
-                ))}
-              </div>
+  <div className="card border-0 shadow-sm">
+    <div className="card-body p-4">
+      <h5 className="mb-4">Interview Details</h5>
+
+      {/* Add Interview Cycle Button */}
+      <div className="mb-3">
+        <button className="btn btn-outline-primary" onClick={() => setShowCycleForm(true)}>
+          + Add Interview Cycle
+        </button>
+      </div>
+
+      {/* Add Interview Cycle Form */}
+      {showCycleForm && (
+        <div className="card p-3 my-3 bg-light">
+          <h6 className="mb-3">Add New Interview Cycle</h6>
+          <div className="row g-3">
+            <div className="col-md-5">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Client"
+                value={newCycle.client}
+                onChange={(e) => setNewCycle({ ...newCycle, client: e.target.value })}
+              />
+            </div>
+            <div className="col-md-5">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Title"
+                value={newCycle.title}
+                onChange={(e) => setNewCycle({ ...newCycle, title: e.target.value })}
+              />
+            </div>
+            <div className="col-md-2 d-grid">
+              <button className="btn btn-primary" onClick={handleAddCycle}>
+                Add
+              </button>
             </div>
           </div>
-        );
+        </div>
+      )}
+
+      {/* Interview Cycle List */}
+      <div
+        style={{
+          maxHeight: '400px',
+          overflowY: 'auto',
+          paddingRight: '4px',
+        }}
+      >
+        {interviewCycles.map((cycle) => (
+          <ExpandableCard
+            key={cycle.cycleId}
+            title={cycle.client}
+            subtitle={cycle.title}
+          >
+            {interviewRounds[cycle.cycleId] && interviewRounds[cycle.cycleId].length > 0 ? (
+              <div className="table-responsive">
+                <table className="table table-bordered align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Round</th>
+                      <th>Date</th>
+                      <th>Panel</th>
+                      <th>Status</th>
+                      <th>Feedback</th>
+                      <th>Review</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {interviewRounds[cycle.cycleId].map((round) => (
+                      <tr key={round.interviewId}>
+                        <td>{round.round}</td>
+                        <td>{round.date}</td>
+                        <td>{round.panel}</td>
+                        <td>{round.status}</td>
+                        <td>{round.feedback}</td>
+                        <td>{round.review}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-muted">No rounds found for this cycle.</p>
+            )}
+
+            {/* Add Round Button */}
+            <button
+              className="btn btn-outline-success mt-2"
+              onClick={() => setShowRoundFormId(cycle.cycleId)}
+            >
+              + Add Round
+            </button>
+
+            {/* Add Round Form */}
+            {showRoundFormId === cycle.cycleId && (
+              <div className="card p-3 my-3 bg-light">
+                <h6 className="mb-3">Add Round to {cycle.client} - {cycle.title}</h6>
+                <div className="row g-3">
+                  <div className="col-md-3">
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={newRound.date}
+                      onChange={(e) => setNewRound({ ...newRound, date: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Panel"
+                      value={newRound.panel}
+                      onChange={(e) => setNewRound({ ...newRound, panel: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <select
+                      className="form-select"
+                      value={newRound.status}
+                      onChange={(e) => setNewRound({ ...newRound, status: e.target.value })}
+                    >
+                      <option value="">Select Status</option>
+                      <option value="PASSED">PASSED</option>
+                      <option value="FAILED">FAILED</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="SUCESS">SUCESS</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3">
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="Round Number"
+                      value={newRound.round}
+                      onChange={(e) => setNewRound({ ...newRound, round: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <select
+                      
+                      className="form-select"
+                      placeholder="Feedback"
+                      value={newRound.feedback}
+                      onChange={(e) => setNewRound({ ...newRound, feedback: e.target.value })}
+                    ><option value="">Select Feedback</option>
+                    <option value="POSITIVE">POSITIVE</option>
+                    <option value="NEGATIVE">NEGATIVE</option>
+                    </select>
+                  </div>
+                  <div className="col-md-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Detailed Feedback"
+                      value={newRound.detailedFeedback}
+                      onChange={(e) => setNewRound({ ...newRound, detailedFeedback: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Review"
+                      value={newRound.review}
+                      onChange={(e) => setNewRound({ ...newRound, review: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Department"
+                      value={newRound.department}
+                      onChange={(e) => setNewRound({ ...newRound, department: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={() => handleAddRound(cycle)}
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </ExpandableCard>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 
       default:
         return null;
