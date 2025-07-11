@@ -8,6 +8,7 @@ import ManageUsers from './pages/ManageUsers';
 import Dashboard from './pages/Dashboard';
 import AssessmentLanding from './pages/AssessmentSeperateComp/AssessmentHome';
 import AssignAssessment from './pages/AssessmentSeperateComp/AssignAssesment';
+import BenchReport from './pages/BenchReport';
 import Layout from './components/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/manage-users" element={<ManageUsers />} />
         <Route path="/assessmentcomp" element={<AssessmentLanding />} />
         <Route path="/assign-assessment" element={<AssignAssessment />} />
+        <Route path="/bench-report" element={<BenchReport />} />
       </Route>
     </Routes>
   );

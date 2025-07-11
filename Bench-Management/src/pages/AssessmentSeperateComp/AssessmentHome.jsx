@@ -5,18 +5,20 @@ import './AssessmentHome.css';
 import ExpandableCard from '../../components/ExpandableCard';
 import { fetchAllAssessments } from '../../services/assessmentService';
 import AssessmentScoreList from './AssessmentScoreList';
+import useBenchData from '../../services/useBenchData';
 
 function AssessmentLanding() {
+  // Use loading from useBenchData to enforce authentication
+  const { loading } = useBenchData();
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [allAssessments, setAllAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAssessments, setLoadingAssessments] = useState(true);
   const [searchEmpId, setSearchEmpId] = useState('');
   const [searchEmpName, setSearchEmpName] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [minScore, setMinScore] = useState('');
-
 
   const topics = ["Java", "C++", "Python", "JavaScript", "React", "Node.js", "SQL", "Databases"];
 
@@ -28,7 +30,7 @@ function AssessmentLanding() {
       } catch (error) {
         console.error("Error loading assessments:", error);
       } finally {
-        setLoading(false);
+        setLoadingAssessments(false);
       }
     };
     loadAssessments();
@@ -41,6 +43,14 @@ function AssessmentLanding() {
       : true;
     return matchesTopic && matchesSearch;
   });
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <span className="spinner-border text-primary" />
+      </div>
+    );
+  }
 
   return (
     <Container className="py-5" style={{ marginTop: '80px', maxWidth: '1000px' }}>
@@ -109,7 +119,7 @@ function AssessmentLanding() {
             paddingRight: '5px',
           }}
         >
-          {loading ? (
+          {loadingAssessments ? (
             <div className="text-center my-4">
               <Spinner animation="border" variant="primary" />
             </div>
@@ -120,7 +130,6 @@ function AssessmentLanding() {
                 title={assessment.topic}
                 subtitle={`${assessment.createdDate} — ${assessment.assessmentLink}`}
               >
-
                 <AssessmentScoreList
                   assessmentId={assessment.assessmentId}
                   topic={assessment.topic}
@@ -129,30 +138,25 @@ function AssessmentLanding() {
                   selectedDate={selectedDate}
                   minScore={minScore}
                 />
-
               </ExpandableCard>
             ))
           )}
         </div>
       </Card>
 
-
-
       {/* Assign New */}
       <div className='align-items-center d-flex justify-content-center'>
-      <button
-        className="p-4 text-center clickable bg-light mt-4 animated-btn animated-btn-wide"
-        onClick={() => navigate('/assign-assessment')}
-        style={{ cursor: 'pointer', width: '100%', maxWidth: '800px' }}
-      >
-        <svg preserveAspectRatio="none" viewBox="0 0 1000 100">
-          <polyline points="1000,0 1000,100 0,100 0,0 1000,0" />
-        </svg>
-        <span className="mb-0 text-primary">+ Create & Assign New Assessment</span>
-      </button>
+        <button
+          className="p-4 text-center clickable bg-light mt-4 animated-btn animated-btn-wide"
+          onClick={() => navigate('/assign-assessment')}
+          style={{ cursor: 'pointer', width: '100%', maxWidth: '800px' }}
+        >
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 100">
+            <polyline points="1000,0 1000,100 0,100 0,0 1000,0" />
+          </svg>
+          <span className="mb-0 text-primary">+ Create & Assign New Assessment</span>
+        </button>
       </div>
-
-
     </Container>
   );
 }

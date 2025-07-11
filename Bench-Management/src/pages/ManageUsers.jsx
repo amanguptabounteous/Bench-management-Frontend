@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import "./ManageUsers.css";
+import useBenchData from "../services/useBenchData";
 
 const ManageUsers = () => {
+  // Use loading from useBenchData to enforce authentication
+  const { loading } = useBenchData();
+
   const [role, setRole] = useState("admin");
   const [empId, setEmpId] = useState("");
   const [email, setEmail] = useState("");
@@ -25,6 +29,14 @@ const ManageUsers = () => {
       setMessage("Error: " + err.message);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <span className="spinner-border text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="manage-users-background">

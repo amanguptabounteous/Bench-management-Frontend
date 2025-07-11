@@ -3,24 +3,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
-
+ 
 import authService from '../services/authService';
 import './GlobalNav.css';
-
+ 
 function GlobalNavbar() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
-
+ 
   const handleLogout = () => {
     authService.logout();
     navigate("/signin");
   };
-
+ 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
+ 
       if (currentScrollY < 50) {
         setShowNavbar(true); // Always show at top
       } else if (currentScrollY > lastScrollY) {
@@ -28,14 +28,14 @@ function GlobalNavbar() {
       } else {
         setShowNavbar(true); // Show on scroll up
       }
-
+ 
       setLastScrollY(currentScrollY);
     };
-
+ 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
-
+ 
   return (
     <Navbar
       bg="light"
@@ -50,18 +50,18 @@ function GlobalNavbar() {
             alt="Bounteous Logo"
             height="30"
             className="logo-img"
-
+ 
           />
         </Navbar.Brand>
-
-
-
+ 
+ 
+ 
         <Navbar.Toggle aria-controls="responsive-navbar-nav" className="custom-toggler">
           <FontAwesomeIcon icon={faBars} color="white" />
         </Navbar.Toggle>
-
-
-
+ 
+ 
+ 
         {/* Collapsible links */}
         <Navbar.Collapse id="responsive-navbar-nav" className="bg-navbar" data-bs-theme="dark">
           <Nav className="ms-auto gap-3">
@@ -71,15 +71,20 @@ function GlobalNavbar() {
             <Nav.Link as={Link} to="/assessmentcomp" className="gradient-hover">
               Assessment
             </Nav.Link>
+            <Nav.Link as={Link} to="/bench-report" className="gradient-hover">
+              Generate Report
+            </Nav.Link>
+ 
             <Nav.Link onClick={handleLogout} className="gradient-hover">
               Log Out
             </Nav.Link>
+ 
           </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
-
+ 
   );
 }
-
+ 
 export default GlobalNavbar;
