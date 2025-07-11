@@ -106,7 +106,7 @@ const BenchReport = () => {
   };
  
   return (
-    <div className="container mt-5">
+    <div className="container" style={{ marginTop: "120px" }}>     
       <h2 className="mb-4">Generate Bench Exit Report</h2>
  
       <div className="row g-3 mb-3">
