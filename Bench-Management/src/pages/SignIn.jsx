@@ -12,32 +12,49 @@ const SignIn = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiClient.post("/auth/login", { email, password, role });
-      if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", role);
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "trainer") {
-          navigate("/trainer-dashboard");
-        } else {
-          navigate("/");
-        }
-      } else {
-        setError("Invalid response from server.");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
-    } finally {
+  try {
+    const endpoint =
+      role === "admin" ? "/bms/admin/login" :
+      role === "trainer" ? "/bms/trainer/login" :
+      null;
+
+    if (!endpoint) {
+      setError("Invalid role selected.");
       setLoading(false);
+      return;
     }
-  };
+
+    const payload = {
+      email,
+      password,
+    };
+
+    const res = await apiClient.post(endpoint, payload);
+
+    if (res.data?.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", role);
+
+      if (role === "admin") {
+        navigate("/home");
+      } else {
+        navigate("/assessmentcomp");
+      }
+    } else {
+      setError("Invalid response from server.");
+    }
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="signin-background">
@@ -57,7 +74,6 @@ const SignIn = () => {
             type="button"
             className={`signin-role-btn${role === "admin" ? " selected" : ""}`}
             onClick={() => setRole("admin")}
-            tabIndex={0}
           >
             Admin
           </button>
@@ -65,7 +81,6 @@ const SignIn = () => {
             type="button"
             className={`signin-role-btn${role === "trainer" ? " selected" : ""}`}
             onClick={() => setRole("trainer")}
-            tabIndex={0}
           >
             Trainer
           </button>
@@ -94,6 +109,7 @@ const SignIn = () => {
         <button type="submit" className="signin-button" disabled={loading}>
           {loading ? "Signing In..." : "Sign In"}
         </button>
+
         {error && <div className="signin-error">{error}</div>}
       </form>
     </div>
