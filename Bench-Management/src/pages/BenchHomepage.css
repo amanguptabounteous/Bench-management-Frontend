@@ -1,48 +1,210 @@
-/* Clean and modern table */
-.bench-table {
-  border-collapse: separate;
-  border-spacing: 0 0.5rem;
+/* New Layout System */
+body{
+  margin-top: 70px;
 }
 
-.bench-table th {
-  background: #f8f9fa;
-  border: none;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  color: #6c757d;
+  /* New Layout System */
+  .bench-layout {
+    display: flex;
+    transition: all 0.3s ease-in-out;
+  }
+
+.filter-sidebar {
+  width: 280px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-right: 1px solid #dee2e6;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  transition: width 0.3s ease-in-out;
+  overflow-y: auto;     /* ✅ allow vertical scroll */
+  overflow-x: hidden;   /* ✅ prevent horizontal scroll */
 }
 
-.bench-table td {
-  background: #fff;
-  border: none;
-  vertical-align: middle;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  font-size: 0.95rem;
-}
 
-.bench-table tr:hover td {
-  background: #f1f3f5;
-}
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    transition: justify-content 0.3s ease-in-out;
+  }
 
-.deploy-badge {
-  font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-}
+  .sidebar-title {
+    margin: 0;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+    white-space: nowrap;
+  }
 
-.text-deployable {
-  color: #198754;
-  background-color: #d1e7dd;
-}
+  .collapse-btn {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
 
-.text-not-deployable {
-  color: #dc3545;
-  background-color: #f8d7da;
-}
+  /* Collapsed State */
+  .bench-layout.sidebar-collapsed .filter-sidebar {
+    width: 60px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
 
-.aging-tooltip {
-  font-weight: 600;
-  color: #495057;
-  cursor: help;
-}
+  .bench-layout.sidebar-collapsed .sidebar-header {
+    justify-content: center; /* This will center the button when the title is gone */
+  }
+
+  .bench-layout.sidebar-collapsed .sidebar-title,
+  .bench-layout.sidebar-collapsed .sidebar-content {
+    opacity: 0;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Filter Groups and Bubbles */
+  .filter-group {
+    margin-bottom: 1.75rem;
+  }
+
+  .filter-group .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+  }
+
+  .bubble-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-bubble {
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    border: 1px solid #0d6efd;
+    background-color: #fff;
+    color: #0d6efd;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .filter-bubble:hover {
+    background-color: #e0eaff;
+  }
+
+  .filter-bubble.selected {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+
+  /* Main Content Area */
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  /* Table Styles */
+  .bench-table {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+  }
+
+  .bench-table th {
+    background: #f8f9fa;
+    border: none;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+
+  .bench-table td {
+    background: #fff;
+    border: none;
+    vertical-align: middle;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    font-size: 0.95rem;
+  }
+
+  .bench-table tr:hover td {
+    background: #f1f3f5;
+  }
+
+  .employee-link {
+    text-decoration: none;
+    font-weight: 500;
+    color: #0d6efd;
+  }
+  .employee-link:hover {
+      text-decoration: underline;
+  }
+
+  .deploy-badge {
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+  }
+
+  .text-deployable {
+    color: #198754;
+    background-color: #d1e7dd;
+  }
+
+  .text-not-deployable {
+    color: #dc3545;
+    background-color: #f8d7da;
+  }
+
+  .aging-tooltip {
+    font-weight: 600;
+    color: #495057;
+    cursor: help;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .bench-layout, .bench-layout.sidebar-collapsed {
+      flex-direction: column;
+    }
+    .filter-sidebar, .bench-layout.sidebar-collapsed .filter-sidebar {
+      position: static;
+      width: 100%;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid #dee2e6;
+      margin-bottom: 20px;
+      overflow: visible;
+    }
+    .main-content {
+      padding: 0 15px; 
+      height: auto;
+    }
+    .collapse-btn {
+        display: none; /* Hide collapse button on mobile */
+    }
+    .bench-layout.sidebar-collapsed .sidebar-title,
+    .bench-layout.sidebar-collapsed .sidebar-content,
+    .sidebar-title,
+    .sidebar-content {
+        opacity: 1;
+        visibility: visible;
+        height: auto;
+        margin: unset;
+        padding: unset;
+    }
+  }
+ 
