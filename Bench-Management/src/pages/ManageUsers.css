@@ -1,97 +1,50 @@
-.manage-users-background {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e0e7ff 0%, #f5f5f5 100%);
-  padding: 80px;
+body{
+  margin-top: 100px;
+}
+.user-management-page .card {
+    border: none;
+    border-radius: 0.75rem;
 }
 
-.manage-users-form {
-  background: #fff;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  width: 370px;
-  transition: box-shadow 0.2s;
+.user-management-page .card-title {
+    font-weight: 600;
+    color: #343a40;
 }
 
-.manage-users-form h2 {
-  text-align: center;
-  color: #2d3a4b;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
+.add-user-panel {
+    padding-right: 15px;
 }
 
-.manage-users-form label {
-  font-weight: 500;
-  color: #3b4252;
-  margin-bottom: 0.2rem;
-  margin-top: 0.6rem;
-  /* Add space below label */
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.manage-users-panel {
+    padding-left: 15px;
 }
 
-.manage-users-form select,
-.manage-users-form input[type="text"],
-.manage-users-form input[type="email"] {
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 1rem;
-  background: #f8fafc;
-  transition: border-color 0.2s;
-  margin-top: 0.2rem; /* Add space between label and input */
-  margin-bottom: 0.5rem; /* Add space below input */
+.found-employee-section {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
 }
 
-.manage-users-form select:focus,
-.manage-users-form input:focus {
-  border-color: #6366f1;
-  outline: none;
-  background: #fff;
+.manage-users-table {
+    font-size: 0.9rem;
+    vertical-align: middle;
 }
 
-.manage-users-form button[type="submit"] {
-  margin-top: 0.5rem;
-  padding: 0.7rem 0;
-  background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.08rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+.manage-users-table th {
+    font-weight: 600;
+    color: #6c757d;
+    border-bottom-width: 2px;
+    white-space: nowrap;
 }
 
-.manage-users-form button[type="submit"]:hover {
-  background: linear-gradient(90deg, #60a5fa 0%, #6366f1 100%);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+.manage-users-table .form-select-sm {
+    font-size: 0.9rem;
+    min-width: 180px;
 }
 
-.manage-users-message {
-  margin-top: 1rem;
-  color: #059669;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  border-radius: 6px;
-  padding: 0.6rem;
-  text-align: center;
-  font-weight: 500;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
-}
-
-@media (max-width: 600px) {
-  .manage-users-background {
-    padding-top: 100px; /* More space on small screens if needed */
-  }
+.manage-users-table .form-check-input {
+    margin: auto;
+    display: block;
+    transform: scale(1.1);
 }

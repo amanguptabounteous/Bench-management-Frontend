@@ -65,9 +65,9 @@ function GlobalNavbar() {
         {/* Collapsible links */}
         <Navbar.Collapse id="responsive-navbar-nav" className="bg-navbar" data-bs-theme="dark">
           <Nav className="ms-auto gap-3">
-            {/* <Nav.Link as={Link} to="/manage-users" className="gradient-hover">
-              Manage Users
-            </Nav.Link> */}
+            <Nav.Link as={Link} to="/manage-users" className="gradient-hover">
+              Admin Manage
+            </Nav.Link>
             <Nav.Link as={Link} to="/assessmentcomp" className="gradient-hover">
               Assessment
             </Nav.Link>
