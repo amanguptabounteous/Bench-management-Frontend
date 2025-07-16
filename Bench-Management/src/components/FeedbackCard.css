@@ -1,0 +1,36 @@
+/*
+  REMOVE all the old styles for .feedback-card, .feedback-meta, 
+  .feedback-header, and .feedback-author from BenchHomepage.css
+  and REPLACE them with these.
+*/
+
+.feedback-list {
+  list-style: none; /* Remove default bullets */
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.feedback-list-item {
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border-bottom: 1px solid #f0f0f0; /* Faint line separator */
+}
+
+.feedback-list-item:last-child {
+  border-bottom: none; /* No line on the last item */
+}
+
+.feedback-date {
+  color: #495057;
+}
+
+.feedback-text {
+  color: #212529;
+}
+
+/* This existing style for the remarks textarea is still good */
+.remarks-textarea {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
