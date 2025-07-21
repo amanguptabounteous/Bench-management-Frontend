@@ -1,50 +1,23 @@
-body{
-  margin-top: 100px;
+.manage-users-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
 }
-.user-management-page .card {
+
+.manage-users-page h2 {
+    color: #343a40;
+}
+
+.card {
     border: none;
     border-radius: 0.75rem;
 }
 
-.user-management-page .card-title {
-    font-weight: 600;
-    color: #343a40;
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
 }
 
-.add-user-panel {
-    padding-right: 15px;
-}
-
-.manage-users-panel {
-    padding-left: 15px;
-}
-
-.found-employee-section {
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    border: 1px solid #e9ecef;
-}
-
-.manage-users-table {
-    font-size: 0.9rem;
-    vertical-align: middle;
-}
-
-.manage-users-table th {
-    font-weight: 600;
-    color: #6c757d;
-    border-bottom-width: 2px;
-    white-space: nowrap;
-}
-
-.manage-users-table .form-select-sm {
-    font-size: 0.9rem;
-    min-width: 180px;
-}
-
-.manage-users-table .form-check-input {
-    margin: auto;
-    display: block;
-    transform: scale(1.1);
+.trainer-list-container {
+    max-height: 300px;
+    overflow-y: auto;
 }

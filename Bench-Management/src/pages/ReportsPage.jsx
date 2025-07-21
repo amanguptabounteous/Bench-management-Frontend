@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Table, Button } from 'react-bootstrap';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement } from 'chart.js';
+import { Container, Row, Col, Card, Form, Table, Button, Spinner, Alert, ButtonGroup } from 'react-bootstrap';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, Filler } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { getElementAtEvent } from 'react-chartjs-2';
-import './ReportsPage.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt, faChartLine, faUsers } from '@fortawesome/free-solid-svg-icons';
+
+// ✨ MODIFIED: Importing fetchBenchDetails for complete employee data
+import { fetchBenchDetails } from '../services/benchService';
+import {
+    fetchDailyBenchStatus,
+    fetchMonthlyBenchStatus,
+    fetchStatusDistribution,
+    fetchAgingAnalysis
+} from '../services/analyticsService';
+
+import './ReportsPage.css'; // Make sure to have this CSS file
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, LineElement, PointElement, Title, Tooltip, Legend);
-
-// --- Mock Data with Date Info ---
-const mockBenchEmployees = [
-    { empId: 'E1024', name: 'Alice Johnson', primarySkill: 'React', level: 'L3', yearsOfExperience: 5, currentLocation: 'New York', agingDays: 15, isDeployable: true, status: 'Under Evaluation', benchStartDate: '2025-06-25', benchEndDate: null },
-    { empId: 'E1025', name: 'Bob Williams', primarySkill: 'Java', level: 'L4', yearsOfExperience: 8, currentLocation: 'Chicago', agingDays: 45, isDeployable: true, status: 'Interview In progress', benchStartDate: '2025-05-29', benchEndDate: null },
-    { empId: 'E1026', name: 'Charlie Brown', primarySkill: 'Python', level: 'L2', yearsOfExperience: 2, currentLocation: 'Chicago', agingDays: 5, isDeployable: false, status: 'Onboarded', benchStartDate: '2025-04-10', benchEndDate: '2025-05-15' },
-    { empId: 'E1027', name: 'Diana Miller', primarySkill: 'Angular', level: 'L3', yearsOfExperience: 4, currentLocation: 'New York', agingDays: 80, isDeployable: true, status: 'Under Evaluation', benchStartDate: '2025-04-24', benchEndDate: null },
-    { empId: 'E1028', name: 'Ethan Davis', primarySkill: 'DevOps', level: 'L5', yearsOfExperience: 10, currentLocation: 'Austin', agingDays: 22, isDeployable: true, status: 'Onboarded', benchStartDate: '2025-03-01', benchEndDate: '2025-04-20' },
-    { empId: 'E1029', name: 'Fiona Garcia', primarySkill: 'Java', level: 'L2', yearsOfExperience: 3, currentLocation: 'San Francisco', agingDays: 12, isDeployable: false, status: 'On Bench', benchStartDate: '2025-07-01', benchEndDate: null },
-    { empId: 'E1030', name: 'George Rodriguez', primarySkill: 'React', level: 'L4', yearsOfExperience: 7, currentLocation: 'Chicago', agingDays: 60, isDeployable: true, status: 'On Bench', benchStartDate: '2025-05-14', benchEndDate: null },
-];
-const mockSkillDemands = { 'React': 5, 'Java': 3, 'Python': 2, 'Angular': 1, 'DevOps': 2, 'UI/UX': 0 };
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, Filler);
 
 // --- Helper to get default date range (last 3 months) ---
 const getInitialDateRange = () => {
@@ -32,148 +32,276 @@ const getInitialDateRange = () => {
 };
 
 function ReportsPage() {
+    // --- State Management ---
     const [dateRange, setDateRange] = useState(getInitialDateRange());
+    const [granularity, setGranularity] = useState('monthly');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // ✨ MODIFIED: State to hold the complete, unfiltered list of all employees
+    const [allBenchEmployees, setAllBenchEmployees] = useState([]);
+    // State for employees filtered by the selected date range
+    const [filteredEmployees, setFilteredEmployees] = useState([]);
     
-    const initialBenchData = useMemo(() => mockBenchEmployees.filter(emp => !emp.benchEndDate), []);
-    const [details, setDetails] = useState({ title: 'All Employees Currently on Bench', data: initialBenchData });
+    // Data states for charts
+    const [benchMovementData, setBenchMovementData] = useState({});
+    const [statusData, setStatusData] = useState({});
+    const [agingData, setAgingData] = useState({});
 
-    const chartRefs = { aging: useRef(), skill: useRef(), status: useRef() };
+    // Details table state
+    const [details, setDetails] = useState({ title: 'Bench Employees Report', data: [] });
 
-    const dateFilteredEmployees = useMemo(() => {
+    const chartRefs = { aging: useRef(), status: useRef() };
+
+    // --- Data Fetching ---
+    const handleGenerateReport = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { start, end } = dateRange;
+
+            const benchMovementFetcher = granularity === 'daily'
+                ? fetchDailyBenchStatus(start, end)
+                : fetchMonthlyBenchStatus(start, end);
+
+            // ✨ MODIFIED: Using fetchBenchDetails to get complete employee data
+            const [
+                allEmployeesData, // This now gets ALL fields
+                movementData,
+                statusDist,
+                agingDist
+            ] = await Promise.all([
+                fetchBenchDetails(), // Swapped to the correct service
+                benchMovementFetcher,
+                fetchStatusDistribution(start, end),
+                fetchAgingAnalysis(start, end)
+            ]);
+
+            setAllBenchEmployees(allEmployeesData || []);
+            setBenchMovementData(movementData || {});
+            setStatusData(statusDist || {});
+            setAgingData(agingDist || {});
+
+        } catch (err) {
+            console.error("Failed to fetch report data:", err);
+            setError("Could not load analytics data. Please check the API connection and try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // Initial data load on component mount
+    useEffect(() => {
+        handleGenerateReport();
+    }, []);
+
+    // ✨ NEW: This effect now handles all frontend filtering whenever the master list or date range changes.
+    useEffect(() => {
         const start = new Date(dateRange.start);
         const end = new Date(dateRange.end);
-        return mockBenchEmployees.filter(emp => {
+
+        const employeesInDateRange = allBenchEmployees.filter(emp => {
             const benchStart = new Date(emp.benchStartDate);
-            const benchEnd = emp.benchEndDate ? new Date(emp.benchEndDate) : null;
-            return benchStart <= end && (!benchEnd || benchEnd >= start);
+            // Handle cases where benchEndDate is null (currently on bench)
+            const benchEnd = emp.benchEndDate ? new Date(emp.benchEndDate) : new Date(); // Treat null as ongoing
+            return benchStart <= end && benchEnd >= start;
         });
-    }, [dateRange]);
 
-    // --- Chart Data Processing ---
-    const agingBuckets = { '0-30 days': 0, '31-60 days': 0, '61-90 days': 0, '90+ days': 0 };
-    dateFilteredEmployees.forEach(emp => {
-        if (emp.agingDays <= 30) agingBuckets['0-30 days']++;
-        else if (emp.agingDays <= 60) agingBuckets['31-60 days']++;
-        else if (emp.agingDays <= 90) agingBuckets['61-90 days']++;
-        else agingBuckets['90+ days']++;
-    });
-    const agingAnalysisData = { labels: Object.keys(agingBuckets), datasets: [{ label: '# of Employees', data: Object.values(agingBuckets), backgroundColor: 'rgba(255, 99, 132, 0.6)' }] };
+        setFilteredEmployees(employeesInDateRange);
+        setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: employeesInDateRange });
 
-    const skillSupply = dateFilteredEmployees.reduce((acc, emp) => { acc[emp.primarySkill] = (acc[emp.primarySkill] || 0) + 1; return acc; }, {});
-    const allSkills = [...new Set([...Object.keys(skillSupply), ...Object.keys(mockSkillDemands)])];
-    const skillVsDemandData = { labels: allSkills, datasets: [ { label: 'Bench Supply', data: allSkills.map(skill => skillSupply[skill] || 0), backgroundColor: 'rgba(54, 162, 235, 0.6)' }, { label: 'Open Demand', data: allSkills.map(skill => mockSkillDemands[skill] || 0), backgroundColor: 'rgba(75, 192, 192, 0.6)' } ] };
-    
-    const statusCounts = dateFilteredEmployees.reduce((acc, emp) => { acc[emp.status] = (acc[emp.status] || 0) + 1; return acc; }, {});
-    const pieChartData = { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40'] }] };
+    }, [dateRange, allBenchEmployees]); // This re-runs only when the date or the master employee list changes
 
-    const monthlyBenchCount = useMemo(() => {
-        const counts = {};
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        for (let i = 3; i >= 0; i--) {
-            const d = new Date(); d.setMonth(d.getMonth() - i);
-            const monthKey = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-            counts[monthKey] = 0;
-        }
-        mockBenchEmployees.forEach(emp => {
-            const start = new Date(emp.benchStartDate);
-            const end = emp.benchEndDate ? new Date(emp.benchEndDate) : new Date();
-            for (let d = new Date(start.getTime()); d <= end; d.setMonth(d.getMonth() + 1)) {
-                const monthKey = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-                if (counts[monthKey] !== undefined) counts[monthKey]++;
-            }
-        });
-        return counts;
-    }, []);
-    const monthlyFrequencyData = { labels: Object.keys(monthlyBenchCount), datasets: [{ label: 'Total on Bench', data: Object.values(monthlyBenchCount), borderColor: 'rgb(153, 102, 255)', backgroundColor: 'rgba(153, 102, 255, 0.5)', fill: true }] };
+    // --- Chart Data Preparation ---
+    const movementChartData = useMemo(() => {
+        const labels = Object.keys(benchMovementData);
+        return {
+            labels,
+            datasets: [
+                {
+                    label: 'On Bench',
+                    data: labels.map(label => benchMovementData[label]?.onBench || 0),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Left Bench',
+                    data: labels.map(label => benchMovementData[label]?.leftBench || 0),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        };
+    }, [benchMovementData]);
 
+    const statusPieData = {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: ['#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40', '#ff6384'],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }]
+    };
+
+    const agingBarData = {
+        labels: Object.keys(agingData),
+        datasets: [{
+            label: '# of Employees',
+            data: Object.values(agingData),
+            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 1,
+        }]
+    };
+
+    // --- Event Handlers ---
     const handleChartClick = (event, chartRef, type) => {
         const element = getElementAtEvent(chartRef.current, event);
         if (!element.length) return;
         const { index } = element[0];
-        let filteredData = [];
+        let dataForTable = [];
         let title = '';
 
         if (type === 'aging') {
-            const label = agingAnalysisData.labels[index];
+            const label = agingBarData.labels[index];
             title = `Employees on Bench: ${label}`;
-            const [min, max] = label.replace(' days', '').replace('+', '-Infinity').split('-').map(Number);
-            filteredData = dateFilteredEmployees.filter(emp => emp.agingDays >= min && (max === Infinity || emp.agingDays <= max));
-        } else if (type === 'skill') {
-            const skill = skillVsDemandData.labels[index];
-            title = `Employees with Skill: ${skill}`;
-            filteredData = dateFilteredEmployees.filter(emp => emp.primarySkill === skill);
+            const [min, maxStr] = label.replace(' days', '').replace('+', '-Infinity').split('-');
+            const minDays = Number(min);
+            const maxDays = Number(maxStr);
+            dataForTable = filteredEmployees.filter(emp => emp.agingDays >= minDays && (maxDays === Infinity || emp.agingDays <= maxDays));
         } else if (type === 'status') {
-            const status = pieChartData.labels[index];
-            title = `Employees with Status: ${status}`;
-            filteredData = dateFilteredEmployees.filter(emp => emp.status === status);
+            const statusLabel = statusPieData.labels[index];
+            title = `Employees with Status: ${statusLabel}`;
+            dataForTable = filteredEmployees.filter(emp => emp.personStatus === statusLabel);
         }
-        setDetails({ title, data: filteredData });
+        setDetails({ title, data: dataForTable });
     };
 
-    const clearFilter = () => setDetails({ title: 'All Employees Currently on Bench', data: initialBenchData });
+    const clearFilter = () => setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: filteredEmployees });
 
     return (
-        <Container fluid className="reports-page mt-4">
-            <Row>
-                {/* Left Panel: Charts */}
-                <Col lg={5} className="charts-panel">
-                    <Card className="shadow-sm mb-4">
-                        <Card.Body>
-                            <Card.Title>Filters</Card.Title>
-                            <Row>
-                                <Col><Form.Group><Form.Label>Start Date</Form.Label><Form.Control type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({...prev, start: e.target.value}))} /></Form.Group></Col>
-                                <Col><Form.Group><Form.Label>End Date</Form.Label><Form.Control type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({...prev, end: e.target.value}))} /></Form.Group></Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                    <Card className="shadow-sm mb-4"><Card.Body className="d-flex flex-column">
-                        <h5 className="card-title text-center">Bench Strength Over Time</h5>
-                        <div className="chart-container"><Line data={monthlyFrequencyData} options={{ responsive: true, maintainAspectRatio: false }} /></div>
-                    </Card.Body></Card>
-                    <Card className="shadow-sm mb-4"><Card.Body className="d-flex flex-column">
-                        <h5 className="card-title text-center">Employee Status Distribution</h5>
-                        <div className="chart-container"><Pie ref={chartRefs.status} data={pieChartData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.status, 'status')} /></div>
-                    </Card.Body></Card>
-                    <Card className="shadow-sm mb-4"><Card.Body className="d-flex flex-column">
-                        <h5 className="card-title text-center">Bench Aging Analysis</h5>
-                        <div className="chart-container"><Bar ref={chartRefs.aging} data={agingAnalysisData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.aging, 'aging')} /></div>
-                    </Card.Body></Card>
-                    <Card className="shadow-sm mb-4"><Card.Body className="d-flex flex-column">
-                        <h5 className="card-title text-center">Skill Demand vs. Supply</h5>
-                        <div className="chart-container"><Bar ref={chartRefs.skill} data={skillVsDemandData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }} onClick={(e) => handleChartClick(e, chartRefs.skill, 'skill')} /></div>
-                    </Card.Body></Card>
-                </Col>
+        <Container fluid className="reports-page p-4">
+            <h2 className="mb-4 fw-light">Bench Analytics Dashboard</h2>
 
-                {/* Right Panel: Details Table */}
-                <Col lg={7} className="details-panel">
-                    <Card className="shadow-sm h-100">
-                        <Card.Header className="d-flex justify-content-between align-items-center">
-                            <span className="details-title">{details.title} ({details.data.length} employees)</span>
-                            {details.title !== 'All Employees Currently on Bench' && 
-                                <Button variant="outline-secondary" size="sm" onClick={clearFilter}>Show All</Button>
-                            }
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <div className="table-responsive details-table-container">
-                                <Table hover className="details-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Emp ID</th><th>Name</th><th>Primary Skill</th><th>Level</th><th>Yrs of Exp</th><th>Location</th><th>Aging</th><th>Deployable</th><th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {details.data.map(person => (
-                                            <tr key={person.empId}>
-                                                <td>{person.empId}</td><td>{person.name}</td><td>{person.primarySkill}</td><td>{person.level}</td><td>{person.yearsOfExperience}</td><td>{person.currentLocation}</td><td>{person.agingDays} days</td><td><span className={`deploy-badge ${person.isDeployable ? 'text-deployable' : 'text-not-deployable'}`}>{person.isDeployable ? 'Yes' : 'No'}</span></td><td>{person.status}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+            {/* Controls Section */}
+            <Card className="shadow-sm mb-4">
+                <Card.Body>
+                    <Row className="align-items-end g-3">
+                        <Col md={5}>
+                            <Form.Group>
+                                <Form.Label><FontAwesomeIcon icon={faCalendarAlt} className="me-2" />Date Range</Form.Label>
+                                <Row>
+                                    <Col><Form.Control type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))} /></Col>
+                                    <Col><Form.Control type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))} /></Col>
+                                </Row>
+                            </Form.Group>
+                        </Col>
+                        <Col md={4}>
+                            <Form.Group>
+                                <Form.Label><FontAwesomeIcon icon={faChartLine} className="me-2" />Time Granularity</Form.Label>
+                                <ButtonGroup className="w-100">
+                                    <Button variant={granularity === 'daily' ? 'primary' : 'outline-primary'} onClick={() => setGranularity('daily')}>Daily</Button>
+                                    <Button variant={granularity === 'monthly' ? 'primary' : 'outline-primary'} onClick={() => setGranularity('monthly')}>Monthly</Button>
+                                </ButtonGroup>
+                            </Form.Group>
+                        </Col>
+                        <Col md={3}>
+                            <Button className="w-100" onClick={handleGenerateReport} disabled={loading}>
+                                {loading ? <Spinner as="span" animation="border" size="sm" /> : "Generate Report"}
+                            </Button>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
+            
+            {loading && <div className="text-center p-5"><Spinner animation="border" variant="primary" /><span className="ms-2">Generating reports...</span></div>}
+            {error && <Alert variant="danger">{error}</Alert>}
+
+            {/* Charts Section */}
+            {!loading && !error && (
+                <>
+                    <Row>
+                        <Col xl={8} className="mb-4">
+                            <Card className="shadow-sm h-100">
+                                <Card.Body className="d-flex flex-column">
+                                    <h5 className="card-title text-center mb-3">Bench Movement ({granularity})</h5>
+                                    <div className="chart-container flex-grow-1">
+                                        {granularity === 'daily' 
+                                            ? <Line data={movementChartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                                            : <Bar data={movementChartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                                        }
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col xl={4} className="mb-4">
+                            <Card className="shadow-sm h-100">
+                                <Card.Body className="d-flex flex-column">
+                                    <h5 className="card-title text-center mb-3">Employee Status Distribution</h5>
+                                    <div className="chart-container flex-grow-1">
+                                        <Pie ref={chartRefs.status} data={statusPieData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.status, 'status')} />
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col xl={12} className="mb-4">
+                            <Card className="shadow-sm h-100">
+                                <Card.Body className="d-flex flex-column">
+                                    <h5 className="card-title text-center mb-3">Bench Aging Analysis</h5>
+                                    <div className="chart-container flex-grow-1" style={{minHeight: '300px'}}>
+                                        <Bar ref={chartRefs.aging} data={agingBarData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.aging, 'aging')} />
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    {/* Details Table Section */}
+                    <Row>
+                        <Col>
+                            <Card className="shadow-sm">
+                                <Card.Header className="d-flex justify-content-between align-items-center bg-light">
+                                    <h5 className="mb-0"><FontAwesomeIcon icon={faUsers} className="me-2" />{details.title}</h5>
+                                    <Button variant="outline-secondary" size="sm" onClick={clearFilter}>Clear Filter</Button>
+                                </Card.Header>
+                                <Card.Body className="p-0">
+                                    <div className="table-responsive">
+                                        <Table hover className="details-table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Emp ID</th><th>Name</th><th>Primary Skill</th><th>Level</th><th>YoE</th><th>Location</th><th>Aging</th><th>Deployable</th><th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {details.data.map(person => (
+                                                    <tr key={person.empId}>
+                                                        <td>{person.empId}</td>
+                                                        <td>{person.name}</td>
+                                                        <td>{person.primarySkill}</td>
+                                                        <td>{person.level || 'N/A'}</td>
+                                                        <td>{person.experience}</td>
+                                                        <td>{person.currentLocation}</td>
+                                                        <td>{person.agingDays} days</td>
+                                                        <td><span className={`badge bg-${person.isDeployable ? 'success' : 'danger'}`}>{person.isDeployable ? 'Yes' : 'No'}</span></td>
+                                                        <td>{person.personStatus}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+                </>
+            )}
         </Container>
     );
 }
