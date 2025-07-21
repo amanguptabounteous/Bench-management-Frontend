@@ -4,11 +4,12 @@ import './App.css';
 import SignIn from './pages/SignIn';
 import Register from './pages/Register';
 import BenchHomepage from './pages/BenchHomepage';
-import ManageUsers from './pages/ManageUsers';
+import UserManagement from './pages/ManageUsers';
 import Dashboard from './pages/Dashboard';
 import AssessmentLanding from './pages/AssessmentSeperateComp/AssessmentHome';
 import AssignAssessment from './pages/AssessmentSeperateComp/AssignAssesment';
 import BenchReport from './pages/BenchReport';
+import ReportsPage from './pages/ReportsPage';
 import Layout from './components/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -23,10 +24,10 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/home" element={<BenchHomepage />} />
         <Route path="/dashboard/:empId" element={<Dashboard />} />
-        <Route path="/manage-users" element={<ManageUsers />} />
+        <Route path="/manage-users" element={<UserManagement />} />
         <Route path="/assessmentcomp" element={<AssessmentLanding />} />
         <Route path="/assign-assessment" element={<AssignAssessment />} />
-        <Route path="/bench-report" element={<BenchReport />} />
+        <Route path="/bench-report" element={<ReportsPage />} />
       </Route>
     </Routes>
   );

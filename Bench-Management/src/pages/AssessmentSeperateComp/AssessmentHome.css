@@ -1,42 +1,42 @@
-/* General Card Hover Effect */
-.clickable {
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+/* AssessmentHome.css */
+
+.assessment-home-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
 }
 
-.clickable:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.assessment-home-page h1 {
+    color: #343a40;
+    font-weight: 300;
 }
 
-/* Topic Cards */
-.topic-card {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease-in-out;
 }
 
-.topic-card:hover {
-  background-color: #e9ecef;
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 500;
+    color: #495057;
 }
 
-.clickable:hover {
-  background-color: #f8f9fa;
-  transition: background-color 0.2s ease;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+.bg-primary-light {
+    background-color: rgba(0, 123, 255, 0.1);
 }
 
-.card h5 {
-  font-weight: 600;
+.bg-success-light {
+    background-color: rgba(40, 167, 69, 0.1);
 }
 
-
-/* Grid Responsiveness */
-@media (max-width: 576px) {
-  .topic-card {
-    font-size: 14px;
-    padding: 12px;
-  }
+.table thead th {
+    background-color: #e9ecef;
+    border-bottom-width: 2px;
 }
 
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+    margin: 0.2em;
+}

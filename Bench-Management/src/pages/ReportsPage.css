@@ -1,0 +1,74 @@
+.reports-page .card {
+    border: none;
+    border-radius: 0.75rem;
+}
+
+.reports-page .card-title {
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.chart-container {
+    position: relative;
+    flex-grow: 1;
+    min-height: 250px; /* Reduced height for more compact charts */
+}
+
+/* New two-column layout styles */
+.charts-panel {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+.details-panel .card {
+    display: flex;
+    flex-direction: column;
+}
+
+.details-panel .card-header {
+    background-color: #e9ecef;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.details-panel .details-title {
+    font-size: 1rem;
+}
+
+.details-table-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Makes the table body scrollable */
+}
+
+.details-table {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.details-table th {
+    font-weight: 600;
+    background-color: #fff;
+    position: sticky;
+    top: 0; /* Makes header sticky during scroll */
+    z-index: 1;
+}
+
+.deploy-badge {
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+.text-deployable {
+  color: #198754;
+  background-color: #d1e7dd;
+}
+
+.text-not-deployable {
+  color: #dc3545;
+  background-color: #f8d7da;
+}
