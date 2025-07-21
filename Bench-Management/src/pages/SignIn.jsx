@@ -1,119 +1,191 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../api/apiClinet";
+import apiClient from "../api/apiClinet"; // Assuming this is your configured axios client
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEnvelope, faLock, faUserShield, faChalkboardTeacher, faSpinner, faIdCard, faUser } from '@fortawesome/free-solid-svg-icons';
 import "./SignIn.css";
-import loadingVideo from "../assets/loading.mp4";
+
+// URL for the combined white logo
+const logoUrl = "https://dgq6zoj2w3e86.cloudfront.net/sponsors/Bounteous_logo.png";
 
 const SignIn = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+    // Common state
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [role, setRole] = useState("admin");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const navigate = useNavigate();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+    // State for toggling between Login and Register
+    const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
 
-  try {
-    const endpoint =
-      role === "admin" ? "/bms/admin/login" :
-      role === "trainer" ? "/bms/trainer/login" :
-      null;
+    // State for registration form
+    const [name, setName] = useState("");
+    const [empId, setEmpId] = useState("");
 
-    if (!endpoint) {
-      setError("Invalid role selected.");
-      setLoading(false);
-      return;
-    }
 
-    const payload = {
-      email,
-      password,
+    const handleRoleChange = (newRole) => {
+        setRole(newRole);
+        // Reset form when role changes
+        setAuthMode('login');
+        setError('');
+        setSuccessMessage('');
+        setEmail('');
+        setPassword('');
+        setName('');
+        setEmpId('');
     };
 
-    const res = await apiClient.post(endpoint, payload);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        setSuccessMessage("");
 
-    if (res.data?.token) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", role);
+        // Handle Registration
+        if (authMode === 'register' && role === 'trainer') {
+            try {
+                const payload = { empId: Number(empId), name, email, password };
+                await apiClient.post('/bms/trainer/register', payload);
+                setSuccessMessage("Registration successful! Please log in.");
+                setAuthMode('login'); // Switch back to login view
+                // Clear registration fields
+                setName('');
+                setEmpId('');
+                setPassword('');
 
-      if (role === "admin") {
-        navigate("/home");
-      } else {
-        navigate("/assessmentcomp");
-      }
-    } else {
-      setError("Invalid response from server.");
-    }
-  } catch (err) {
-    setError(err.response?.data?.message || "Login failed. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+            } catch (err) {
+                setError(err.response?.data?.message || "Registration failed. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+            return; // End execution for registration
+        }
 
+        // Handle Login
+        try {
+            const endpoint =
+                role === "admin" ? "/bms/admin/login" :
+                role === "trainer" ? "/bms/trainer/login" :
+                null;
 
-  return (
-    <div className="signin-background">
-      <video
-        className="signin-bg-video"
-        src={loadingVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
-      />
-      <form className="signin-form" onSubmit={handleSubmit}>
-        <h2 className="signin-title">Sign In</h2>
+            if (!endpoint) {
+                setError("Invalid role selected.");
+                setLoading(false);
+                return;
+            }
 
-        <div className="signin-role-group">
-          <button
-            type="button"
-            className={`signin-role-btn${role === "admin" ? " selected" : ""}`}
-            onClick={() => setRole("admin")}
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            className={`signin-role-btn${role === "trainer" ? " selected" : ""}`}
-            onClick={() => setRole("trainer")}
-          >
-            Trainer
-          </button>
+            const payload = { email, password };
+            const res = await apiClient.post(endpoint, payload);
+
+            if (res.data?.token) {
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("role", role);
+
+                if (role === "admin") {
+                    navigate("/home");
+                } else {
+                    navigate("/assessmentcomp");
+                }
+            } else {
+                setError("Invalid response from server. Please try again.");
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "Login failed. Please check your credentials and try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const isRegisterMode = authMode === 'register' && role === 'trainer';
+
+    return (
+        <div className="signin-page">
+            <div className="signin-container">
+                {/* Left Panel: Image and Logo */}
+                <div className="signin-branding">
+                    <img src={logoUrl} alt="Bounteous x Accolite Logo" className="branding-logo-combined" />
+                </div>
+
+                {/* Right Panel: Sign-In Form */}
+                <div className="signin-form-container">
+                    <form className="signin-form" onSubmit={handleSubmit}>
+                        <h2 className="form-title">{isRegisterMode ? 'Create Trainer Account' : 'Welcome Back'}</h2>
+                        <p className="form-subtitle">{isRegisterMode ? 'Get started by creating your account' : 'Please sign in to your account'}</p>
+
+                        {/* Role Selector */}
+                        <div className="role-selector">
+                            <button
+                                type="button"
+                                className={`role-btn ${role === 'admin' ? 'active' : ''}`}
+                                onClick={() => handleRoleChange('admin')}
+                            >
+                                <FontAwesomeIcon icon={faUserShield} className="role-icon" />
+                                Admin
+                            </button>
+                            <button
+                                type="button"
+                                className={`role-btn ${role === 'trainer' ? 'active' : ''}`}
+                                onClick={() => handleRoleChange('trainer')}
+                            >
+                                <FontAwesomeIcon icon={faChalkboardTeacher} className="role-icon" />
+                                Trainer
+                            </button>
+                        </div>
+
+                        {/* Registration Fields (conditional) */}
+                        {isRegisterMode && (
+                            <>
+                                <div className="input-group">
+                                    <FontAwesomeIcon icon={faIdCard} className="input-icon" />
+                                    <input id="empId" type="number" value={empId} onChange={(e) => setEmpId(e.target.value)} required placeholder="Employee ID" className="signin-input" />
+                                </div>
+                                <div className="input-group">
+                                    <FontAwesomeIcon icon={faUser} className="input-icon" />
+                                    <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full Name" className="signin-input" />
+                                </div>
+                            </>
+                        )}
+
+                        {/* Common Fields */}
+                        <div className="input-group">
+                            <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
+                            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email Address" className="signin-input" />
+                        </div>
+                        <div className="input-group">
+                            <FontAwesomeIcon icon={faLock} className="input-icon" />
+                            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Password" className="signin-input" />
+                        </div>
+
+                        {/* Messages */}
+                        {error && <div className="signin-error">{error}</div>}
+                        {successMessage && <div className="signin-success">{successMessage}</div>}
+
+                        {/* Submit Button */}
+                        <button type="submit" className="signin-button" disabled={loading}>
+                            {loading ? <FontAwesomeIcon icon={faSpinner} spin /> : (isRegisterMode ? 'Register' : 'Sign In')}
+                        </button>
+
+                        {/* Toggle between Login/Register */}
+                        {role === 'trainer' && (
+                            <p className="auth-toggle">
+                                {isRegisterMode ? 'Already have an account?' : "Don't have an account?"}
+                                <button type="button" onClick={() => setAuthMode(isRegisterMode ? 'login' : 'register')} className="auth-toggle-btn">
+                                    {isRegisterMode ? 'Sign In' : 'Register'}
+                                </button>
+                            </p>
+                        )}
+                        
+                        <p className="form-footer">
+                            &copy; {new Date().getFullYear()} Bounteous. All Rights Reserved.
+                        </p>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <label htmlFor="email" className="signin-label">Email</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="signin-input"
-        />
-
-        <label htmlFor="password" className="signin-label">Password</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="signin-input"
-        />
-
-        <button type="submit" className="signin-button" disabled={loading}>
-          {loading ? "Signing In..." : "Sign In"}
-        </button>
-
-        {error && <div className="signin-error">{error}</div>}
-      </form>
-    </div>
-  );
+    );
 };
 
 export default SignIn;

@@ -1,138 +1,268 @@
-.signin-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: auto;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Updated Purple Theme */
+    --primary-color: #7F56D9; /* A modern, professional purple */
+    --primary-hover-color: #6941C6;
+    --background-color: #F8F9FA; /* A very light grey for the page background */
+    --form-background-color: #FFFFFF;
+    --text-color: #344054; /* Dark grey for text, softer than black */
+    --label-color: #667085;
+    --input-border-color: #D0D5DD;
+    --input-focus-border-color: #7F56D9;
+    --error-color: #D93025;
+    --success-color: #12B76A;
+    --branding-bg-color: #3a1c71; /* Dark purple base for the generated texture */
+    --role-inactive-bg: #F2F4F7;
+    --role-inactive-text: #475467;
 }
 
-.signin-bg-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  min-width: 100vw;
-  min-height: 100vh;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: -1;
-  pointer-events: none;
-  /* filter: brightness(0.96); */
+.signin-page {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    padding: 1.5rem;
+}
+
+.signin-container {
+    display: flex;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 650px; /* Reduced height */
+    background-color: var(--form-background-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* --- Branding Panel (Left Side) --- */
+.signin-branding {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background-image: url('https://velocity.bounteous.com/images/ba_back.png');
+    background-size: cover;
+    /* Shift the background image to the left */
+    background-position: 70% center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Style for the single combined logo */
+.branding-logo-combined {
+    width: 250px; /* Adjust size as needed */
+    height: auto;
+    position: relative;
+    z-index: 2;
+    filter: brightness(0) invert(1);
+}
+
+
+/* --- Form Panel (Right Side) --- */
+.signin-form-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
 }
 
 .signin-form {
-  background: rgba(255, 255, 255, 0.55);
-  padding: 2.5rem 2.5rem 2rem 2.5rem;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.18), 0 2px 8px rgba(0,0,0,0.10);
-  display: flex;
-  flex-direction: column;
-  min-width: 340px;
-  max-width: 370px;
-  z-index: 1;
-  backdrop-filter: blur(4px);
-  border: 1.5px solid rgba(25, 118, 210, 0.10);
-  transition: box-shadow 0.2s;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
 }
 
-.signin-form:hover {
-  box-shadow: 0 12px 36px rgba(25, 118, 210, 0.22), 0 4px 16px rgba(0,0,0,0.13);
+.form-title {
+    font-size: 2rem; /* Reduced font size */
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
 }
 
-.signin-title {
-  text-align: center;
-  margin-bottom: 1.7rem;
-  font-weight: 700;
-  font-size: 2rem;
-  color: white;
-  letter-spacing: 1px;
+.form-subtitle {
+    color: var(--label-color);
+    margin-bottom: 2rem; /* Reduced margin */
+    font-size: 0.95rem;
 }
 
-.signin-label {
-  margin-bottom: 0.3rem;
-  font-weight: 500;
-  color: #222;
-  letter-spacing: 0.5px;
+/* Role Selector */
+.role-selector {
+    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.8rem;
+    border: 1px solid var(--input-border-color);
 }
 
-.signin-role-group {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.3rem;
-  justify-content: center;
+.role-btn {
+    flex: 1;
+    padding: 0.75rem; /* Reduced padding */
+    font-size: 0.9rem; /* Reduced font size */
+    font-weight: 500;
+    background-color: var(--role-inactive-bg);
+    color: var(--role-inactive-text);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
-.signin-role-btn {
-  flex: 1;
-  padding: 0.6rem 0;
-  border-radius: 4px;
-  border: 1.5px solid #b6c6e3;
-  background: rgba(255,255,255,0.7);
-  color: #222;
-  font-weight: 600;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s, border 0.18s;
-  outline: none;
+.role-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 15px rgba(127, 86, 217, 0.25);
 }
 
-.signin-role-btn.selected,
-.signin-role-btn:focus {
-  background: #6366f1;
-  color: #fff;
-  border: 1.5px solid #1976d2;
+.role-btn:not(.active):hover {
+    background-color: #e4e7eb;
+}
+
+/* Input Fields */
+.input-group {
+    position: relative;
+    margin-bottom: 1.2rem;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--label-color);
+    font-size: 0.9rem;
 }
 
 .signin-input {
-  margin-bottom: 1.1rem;
-  padding: 0.55rem 0.8rem;
-  border-radius: 4px;
-  border: 1px solid #b6c6e3;
-  background: rgba(255,255,255,0.8);
-  font-size: 1rem;
-  transition: border 0.2s;
+    width: 100%;
+    padding: 0.9rem 0.9rem 0.9rem 2.8rem; /* Reduced padding */
+    border: 1px solid var(--input-border-color);
+    border-radius: 10px;
+    font-size: 0.95rem; /* Reduced font size */
+    color: var(--text-color);
+    transition: border-color 0.3s ease;
+}
+
+.signin-input::placeholder {
+    color: #98A2B3;
 }
 
 .signin-input:focus {
-  border: 1.5px solid #1976d2;
-  outline: none;
-  background: rgba(255,255,255,0.95);
+    outline: none;
+    border-color: var(--input-focus-border-color);
+    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.1);
 }
 
+/* Submit Button */
 .signin-button {
-  padding: 0.8rem;
-  border-radius: 7px;
-  border: none;
-  background: #6366f1;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 1.08rem;
-  margin-top: 0.5rem;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
-  transition: background 0.2s, box-shadow 0.2s;
+    padding: 0.9rem; /* Reduced padding */
+    border: none;
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem; /* Reduced font size */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.signin-button:hover:not(:disabled) {
+    background-color: var(--primary-hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(127, 86, 217, 0.25);
 }
 
 .signin-button:disabled {
-  background: #b3c6e6;
-  cursor: not-allowed;
+    background-color: #a0aec0;
+    cursor: not-allowed;
+}
+
+/* Error and Success Messages */
+.signin-error, .signin-success {
+    padding: 0.8rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
 }
 
 .signin-error {
-  margin-top: 1rem;
-  color: #d32f2f;
-  background: rgba(255, 0, 0, 0.08);
-  border-radius: 6px;
-  padding: 0.7rem 1rem;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  border: 1px solid #ffcdd2;
-  box-shadow: 0 1px 4px rgba(211,47,47,0.07);
+    color: var(--error-color);
+    background-color: rgba(217, 48, 37, 0.1);
+}
+
+.signin-success {
+    color: var(--success-color);
+    background-color: rgba(18, 183, 106, 0.1);
+}
+
+
+/* Auth Toggle Link */
+.auth-toggle {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--label-color);
+}
+
+.auth-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0 0 0 5px;
+}
+
+.auth-toggle-btn:hover {
+    text-decoration: underline;
+}
+
+
+.form-footer {
+    margin-top: 2.5rem;
+    text-align: center;
+    color: #A0AEC0;
+    font-size: 0.8rem;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+    .signin-container {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .signin-branding {
+        display: none; /* Hide the branding panel on smaller screens for simplicity */
+    }
+
+    .signin-form-container {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .signin-page {
+        padding: 1rem;
+    }
+    .form-title {
+        font-size: 1.8rem;
+    }
+    .form-subtitle {
+        margin-bottom: 1.5rem;
+    }
+    .role-selector {
+        flex-direction: column;
+    }
 }
