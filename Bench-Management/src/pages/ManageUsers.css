@@ -1,23 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    --primary-color: #7F56D9;
+    --primary-hover-color: #6941C6;
+    --background-color: #F9FAFB; /* Slightly cleaner background */
+    --card-bg-color: #FFFFFF;
+    --text-color: #344054;
+    --label-color: #667085;
+    --input-border-color: #D0D5DD;
+    --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); /* More subtle shadow */
+    --card-border-color: #EAECF0;
+}
+
 .manage-users-page {
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
     min-height: 100vh;
+    padding: 2rem;
+    font-family: 'Poppins', sans-serif;
 }
 
-.manage-users-page h2 {
-    color: #343a40;
+.page-title {
+    font-weight: 600;
+    font-size: 1.875rem; /* Standard professional title size */
+    color: var(--text-color);
+    margin-bottom: 2rem;
 }
 
-.card {
-    border: none;
-    border-radius: 0.75rem;
+.custom-card {
+    border: 1px solid var(--card-border-color); /* Subtle border */
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    background-color: var(--card-bg-color);
 }
 
-.card-header {
-    border-bottom: 1px solid #e9ecef;
-    color: #495057;
+.custom-card .card-header {
+    background-color: var(--card-bg-color); /* Match card background */
+    border-bottom: 1px solid var(--card-border-color);
+    padding: 1rem 1.25rem;
+    font-weight: 500; /* Less bold for a cleaner look */
+    font-size: 1rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
+.custom-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 500;
+    color: var(--label-color);
+    margin-bottom: 0.375rem; /* Tighter spacing */
+    font-size: 0.875rem;
+}
+
+/* ✨ MODIFIED: Reduced padding and font-size for a more compact look */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid var(--input-border-color);
+    padding: 0.55rem 0.8rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.1);
+    outline: none;
+}
+
+/* User Access Form Specifics */
+.role-selector-mu {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.role-selector-mu .btn {
+    background-color: #F2F4F7;
+    color: #475467;
+    border: 1px solid #D0D5DD;
+    font-weight: 500;
+    padding: 0.625rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.role-selector-mu .btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.input-group-mu {
+    position: relative;
+}
+
+.input-icon-mu {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--label-color);
+    font-size: 0.9rem;
+}
+
+.input-group-mu .form-control {
+    padding-left: 2.25rem;
+}
+
+/* Submit Button */
+.submit-button {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.submit-button:hover:not(:disabled) {
+    background-color: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(127, 86, 217, 0.2);
+}
+
+/* Trainer List */
 .trainer-list-container {
-    max-height: 300px;
+    max-height: 260px;
     overflow-y: auto;
+}
+
+.trainer-list-container .list-group-item {
+    padding: 0.875rem 0.25rem;
+    border-bottom: 1px solid #EAECF0;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.trainer-list-container .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.trainer-icon {
+    margin-right: 0.875rem;
+    color: var(--label-color);
+    font-size: 0.9rem;
+}
+
+/* Custom Switch Styling */
+
+/* ✨ MODIFIED: Reduced switch size */
+.form-switch .form-check-input {
+    width: 2.25em;
+    height: 1.25em;
+    margin-left: 0;
+    cursor: pointer;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23868e96'/%3e%3c/svg%3e");
+    transition: background-position .15s ease-in-out;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+/* ✨ MODIFIED: Reduced label margin */
+.form-switch .form-check-label {
+    margin-left: 0.6rem;
+    color: var(--label-color);
+    font-weight: 500;
+    font-size: 0.9rem;
 }
