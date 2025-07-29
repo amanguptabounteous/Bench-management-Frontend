@@ -1,51 +1,38 @@
-// import apiClient from "../api/apiClinet";
-
-// const authService = {
-//   login: async (email, password) => {
-//     const resp = await apiClient.post("/bms/admin/login", { email, password });
-//     const { token, refreshToken } = resp.data;
-//     localStorage.setItem("token", token);
-//     localStorage.setItem("refreshToken", refreshToken);
-//     return resp.data;
-//   },
-//   logout: () => {
-//     localStorage.removeItem("token");
-//     localStorage.removeItem("refreshToken");
-//   },
-//   // optionally: refreshToken(), getCurrentUser(), etc.
-// };
-
-// export default authService;
-
 import apiClient from "../api/apiClinet";
 
 const authService = {
   login: async (email, password, role) => {
     let resp;
+    // Your existing API call logic is perfect.
     if (role === "trainer") {
-      // Trainer: expects id, pass, roll
       resp = await apiClient.post("/bms/trainer/login", {
-        id: email,
-        pass: password,
-        roll: role,
+        email, // Note: The old code used 'id', ensure your backend accepts 'email' or change back to 'id'.
+        password,
       });
     } else {
-      // Admin: expects id, pass
       resp = await apiClient.post("/bms/admin/login", {
-        id: email,
-        pass: password,
+        email,
+        password,
       });
     }
+
     const { token, refreshToken } = resp.data;
-    localStorage.setItem("token", token);
-    localStorage.setItem("refreshToken", refreshToken);
+    
+    // Store everything in localStorage on successful login
+    if (token) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("role", role); // <-- Add this line
+    }
+
     return resp.data;
   },
+
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("role"); // <-- Add this line
   },
-  // optionally: refreshToken(), getCurrentUser(), etc.
 };
 
 export default authService;

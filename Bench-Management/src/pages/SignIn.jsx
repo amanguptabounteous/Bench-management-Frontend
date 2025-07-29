@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import apiClient from "../api/apiClinet"; // Assuming this is your configured axios client
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faUserShield, faChalkboardTeacher, faSpinner, faIdCard, faUser } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from "../context/authContext"; // Custom hook to access auth context
 import "./SignIn.css";
 
 // URL for the combined white logo
@@ -17,6 +18,7 @@ const SignIn = () => {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     // State for toggling between Login and Register
     const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
@@ -66,34 +68,17 @@ const SignIn = () => {
 
         // Handle Login
         try {
-            const endpoint =
-                role === "admin" ? "/bms/admin/login" :
-                role === "trainer" ? "/bms/trainer/login" :
-                null;
+            await login(email, password, role); // <-- Call the context's login function
 
-            if (!endpoint) {
-                setError("Invalid role selected.");
-                setLoading(false);
-                return;
-            }
-
-            const payload = { email, password };
-            const res = await apiClient.post(endpoint, payload);
-
-            if (res.data?.token) {
-                localStorage.setItem("token", res.data.token);
-                localStorage.setItem("role", role);
-
-                if (role === "admin") {
-                    navigate("/home");
-                } else {
-                    navigate("/assessmentcomp");
-                }
+            // On successful login, navigate
+            if (role === "admin") {
+                navigate("/home");
             } else {
-                setError("Invalid response from server. Please try again.");
+                navigate("/assessmentcomp");
             }
         } catch (err) {
-            setError(err.response?.data?.message || "Login failed. Please check your credentials and try again.");
+            // The context throws the error, so we can catch it here
+            setError(err.response?.data?.message || "Login failed. Please check your credentials.");
         } finally {
             setLoading(false);
         }
@@ -177,7 +162,7 @@ const SignIn = () => {
                                 </button>
                             </p>
                         )}
-                        
+
                         <p className="form-footer">
                             &copy; {new Date().getFullYear()} Bounteous. All Rights Reserved.
                         </p>

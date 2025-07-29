@@ -1,187 +1,27 @@
-// import React, { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { Card, Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
-// import './AssessmentHome.css';
-// import ExpandableCard from '../../components/ExpandableCard';
-// import { fetchAllAssessments } from '../../services/assessmentService';
-// import AssessmentScoreList from './AssessmentScoreList';
-// import useBenchData from '../../services/useBenchData';
-
-// function AssessmentLanding() {
-//   // Use loading from useBenchData to enforce authentication
-//   const { loading } = useBenchData();
-//   const navigate = useNavigate();
-//   const [searchText, setSearchText] = useState('');
-//   const [allAssessments, setAllAssessments] = useState([]);
-//   const [loadingAssessments, setLoadingAssessments] = useState(true);
-//   const [searchEmpId, setSearchEmpId] = useState('');
-//   const [searchEmpName, setSearchEmpName] = useState('');
-//   const [selectedTopic, setSelectedTopic] = useState('');
-//   const [selectedDate, setSelectedDate] = useState('');
-//   const [minScore, setMinScore] = useState('');
-
-//   const topics = ["Java", "C++", "Python", "JavaScript", "React", "Node.js", "SQL", "Databases"];
-
-//   useEffect(() => {
-//     const loadAssessments = async () => {
-//       try {
-//         const data = await fetchAllAssessments();
-//         setAllAssessments(data);
-//       } catch (error) {
-//         console.error("Error loading assessments:", error);
-//       } finally {
-//         setLoadingAssessments(false);
-//       }
-//     };
-//     loadAssessments();
-//   }, []);
-
-//   const filteredAssessments = allAssessments.filter(assessment => {
-//     const matchesTopic = selectedTopic ? assessment.topic === selectedTopic : true;
-//     const matchesSearch = searchText
-//       ? assessment.assessmentLink.toLowerCase().includes(searchText.toLowerCase())
-//       : true;
-//     return matchesTopic && matchesSearch;
-//   });
-
-//   if (loading) {
-//     return (
-//       <div className="text-center py-5">
-//         <span className="spinner-border text-primary" />
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <Container className="py-5" style={{ marginTop: '80px', maxWidth: '1000px' }}>
-//       <h3 className="mb-4 text-center fw-semibold">Assessment Dashboard</h3>
-
-//       {/* Unified Search + Topic Filter */}
-//       <Card className="p-4 shadow-sm mb-4">
-//         <h5 className="mb-3 fw-semibold">Search Assessments</h5>
-//         <Form>
-//           <Row className="g-3">
-//             <Col md={4}>
-//               <Form.Label>Employee Name</Form.Label>
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Search by employee name"
-//                 value={searchEmpName}
-//                 onChange={(e) => setSearchEmpName(e.target.value)}
-//               />
-//             </Col>
-//             <Col md={2}>
-//               <Form.Label>Emp ID</Form.Label>
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Emp ID"
-//                 value={searchEmpId}
-//                 onChange={(e) => setSearchEmpId(e.target.value)}
-//               />
-//             </Col>
-//             <Col md={2}>
-//               <Form.Label>Min Marks</Form.Label>
-//               <Form.Control
-//                 type="number"
-//                 placeholder="e.g. 30"
-//                 value={minScore}
-//                 onChange={(e) => setMinScore(e.target.value)}
-//               />
-//             </Col>
-//             <Col md={2}>
-//               <Form.Label>Topic</Form.Label>
-//               <Form.Select
-//                 value={selectedTopic}
-//                 onChange={(e) => setSelectedTopic(e.target.value)}
-//               >
-//                 <option value="">All</option>
-//                 {topics.map((topic, idx) => (
-//                   <option key={idx} value={topic}>{topic}</option>
-//                 ))}
-//               </Form.Select>
-//             </Col>
-//             <Col md={2}>
-//               <Form.Label>Date</Form.Label>
-//               <Form.Control
-//                 type="date"
-//                 value={selectedDate}
-//                 onChange={(e) => setSelectedDate(e.target.value)}
-//               />
-//             </Col>
-//           </Row>
-//         </Form>
-
-//         {/* Assessments List */}
-//         <div className='mt-4'
-//           style={{
-//             maxHeight: '400px',
-//             overflowY: 'auto',
-//             paddingRight: '5px',
-//           }}
-//         >
-//           {loadingAssessments ? (
-//             <div className="text-center my-4">
-//               <Spinner animation="border" variant="primary" />
-//             </div>
-//           ) : (
-//             filteredAssessments.map((assessment) => (
-//               <ExpandableCard
-//                 key={assessment.assessmentId}
-//                 title={assessment.topic}
-//                 subtitle={`${assessment.createdDate} — ${assessment.assessmentLink}`}
-//               >
-//                 <AssessmentScoreList
-//                   assessmentId={assessment.assessmentId}
-//                   topic={assessment.topic}
-//                   searchEmpId={searchEmpId}
-//                   searchEmpName={searchEmpName}
-//                   selectedDate={selectedDate}
-//                   minScore={minScore}
-//                 />
-//               </ExpandableCard>
-//             ))
-//           )}
-//         </div>
-//       </Card>
-
-//       {/* Assign New */}
-//       <div className='align-items-center d-flex justify-content-center'>
-//         <button
-//           className="p-4 text-center clickable bg-light mt-4 animated-btn animated-btn-wide"
-//           onClick={() => navigate('/assign-assessment')}
-//           style={{ cursor: 'pointer', width: '100%', maxWidth: '800px' }}
-//         >
-//           <svg preserveAspectRatio="none" viewBox="0 0 1000 100">
-//             <polyline points="1000,0 1000,100 0,100 0,0 1000,0" />
-//           </svg>
-//           <span className="mb-0 text-primary">+ Create & Assign New Assessment</span>
-//         </button>
-//       </div>
-//     </Container>
-//   );
-// }
-
-// export default AssessmentLanding;
-
-
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Table, Spinner, Alert, Badge } from 'react-bootstrap';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faTrophy, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faTrophy, faStar, faFileClipboard, faFilterCircleXmark } from '@fortawesome/free-solid-svg-icons';
 
-import { fetchAssessmentByEmpId, fetchReportByMainTopic,
+import {
+    fetchAssessmentByEmpId,
+    fetchReportByMainTopic,
     fetchReportByTopic,
     fetchTopPerformerByMainTopic,
-    fetchTopPerformerByTopic } from '../../services/diffAssessmentService';// Make sure this path is correct
-import './AssessmentHome.css'; // Custom CSS for styling
+    fetchTopPerformerByTopic,
+    fetchAllMainTopics,
+    fetchSubTopicsByMainTopic
+} from '../../services/analyticsService';
+
+import './AssessmentHome.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 // --- Helper Components ---
 const StatCard = ({ title, value, icon, variant }) => (
-    <Card className={`shadow-sm text-center h-100 bg-${variant}-light`}>
+    <Card className={`stat-card shadow-sm text-center h-100 bg-${variant}-light`}>
         <Card.Body>
             <FontAwesomeIcon icon={icon} size="2x" className={`text-${variant} mb-3`} />
             <h5 className="card-title">{title}</h5>
@@ -190,18 +30,16 @@ const StatCard = ({ title, value, icon, variant }) => (
     </Card>
 );
 
-const Section = ({ title, children }) => (
+const Section = ({ title, icon, children }) => (
     <Card className="shadow-sm mb-4">
-        <Card.Header as="h4" className="bg-light">
-            {title}
+        <Card.Header as="h5" className="fw-normal bg-light">
+            <FontAwesomeIcon icon={icon} className="me-2" /> {title}
         </Card.Header>
-        <Card.Body>
-            {children}
-        </Card.Body>
+        <Card.Body>{children}</Card.Body>
     </Card>
 );
 
-
+// --- Main Component ---
 function AssessmentHome() {
     // --- State Management ---
     const [loading, setLoading] = useState({});
@@ -217,6 +55,49 @@ function AssessmentHome() {
     const [reportData, setReportData] = useState([]);
     const [topPerformer, setTopPerformer] = useState('');
 
+    // State for dynamic topic lists
+    const [mainTopicsList, setMainTopicsList] = useState([]);
+    const [subTopicsList, setSubTopicsList] = useState([]);
+
+
+    // --- Effects for Data Fetching ---
+    useEffect(() => {
+        const loadMainTopics = async () => {
+            setLoading(prev => ({ ...prev, mainTopics: true }));
+            try {
+                const data = await fetchAllMainTopics();
+                setMainTopicsList(data || []);
+            } catch (err) {
+                setError(prev => ({ ...prev, mainTopics: "Could not load main topics." }));
+            } finally {
+                setLoading(prev => ({ ...prev, mainTopics: false }));
+            }
+        };
+        loadMainTopics();
+    }, []);
+
+    useEffect(() => {
+        const loadSubTopics = async () => {
+            if (!mainTopic) {
+                setSubTopicsList([]);
+                return;
+            }
+            setLoading(prev => ({ ...prev, subTopics: true }));
+            setSubTopicsList([]);
+            try {
+                const data = await fetchSubTopicsByMainTopic(mainTopic);
+                setSubTopicsList(data || []);
+            } catch (err) {
+                console.error(`Error fetching sub-topics for ${mainTopic}`, err);
+                setSubTopicsList([]);
+            } finally {
+                setLoading(prev => ({ ...prev, subTopics: false }));
+            }
+        };
+        loadSubTopics();
+    }, [mainTopic]);
+
+
     // --- Data Fetching Handlers ---
     const handleFetchEmployeeData = async () => {
         if (!empId) return;
@@ -227,34 +108,23 @@ function AssessmentHome() {
             const data = await fetchAssessmentByEmpId(empId);
             setEmployeeData(data);
         } catch (err) {
-            setError(prev => ({ ...prev, employee: `Could not find assessment data for Employee ID: ${empId}` }));
+            setError(prev => ({ ...prev, employee: `Could not find data for Employee ID: ${empId}` }));
         } finally {
             setLoading(prev => ({ ...prev, employee: false }));
         }
     };
 
     const handleFetchReport = async (type, value) => {
-        if (!value) {
-            setReportData([]);
-            setTopPerformer('');
-            return;
-        }
+        if (!value) return;
         setLoading(prev => ({ ...prev, report: true }));
         setError(prev => ({ ...prev, report: null }));
+        setReportData([]);
+        setTopPerformer('');
         try {
-            let report;
-            let performer;
-            if (type === 'main') {
-                [report, performer] = await Promise.all([
-                    fetchReportByMainTopic(value),
-                    fetchTopPerformerByMainTopic(value)
-                ]);
-            } else {
-                [report, performer] = await Promise.all([
-                    fetchReportByTopic(value),
-                    fetchTopPerformerByTopic(value)
-                ]);
-            }
+            const fetcher = type === 'main' ? fetchReportByMainTopic : fetchReportByTopic;
+            const performerFetcher = type === 'main' ? fetchTopPerformerByMainTopic : fetchTopPerformerByTopic;
+
+            const [report, performer] = await Promise.all([fetcher(value), performerFetcher(value)]);
             setReportData(report || []);
             setTopPerformer(performer || 'Not available.');
         } catch (err) {
@@ -263,6 +133,15 @@ function AssessmentHome() {
             setLoading(prev => ({ ...prev, report: false }));
         }
     };
+    
+    const handleClearReportFilters = () => {
+        setMainTopic('');
+        setSubTopic('');
+        setReportData([]);
+        setTopPerformer('');
+        setError(prev => ({ ...prev, report: null }));
+    };
+
 
     // --- Chart Data Preparation ---
     const completionChartData = {
@@ -270,7 +149,7 @@ function AssessmentHome() {
         datasets: [{
             data: [employeeData?.completionStatus?.completed || 0, employeeData?.completionStatus?.pending || 0],
             backgroundColor: ['#28a745', '#ffc107'],
-            borderColor: ['#ffffff', '#ffffff'],
+            borderColor: '#ffffff',
             borderWidth: 2,
         }],
     };
@@ -288,10 +167,16 @@ function AssessmentHome() {
 
     return (
         <Container fluid className="assessment-home-page p-4">
-            <h1 className="mb-4">Assessment Analytics Dashboard</h1>
+            <div className="dashboard-header mb-4">
+                <FontAwesomeIcon icon={faFileClipboard} size="2x" className="text-primary" />
+                <div>
+                    <h1 className="mb-0">Assessment Analytics</h1>
+                    <p className="text-muted mb-0">Analyze individual and topic-wise performance.</p>
+                </div>
+            </div>
 
             {/* Individual Performance Section */}
-            <Section title="Individual Performance Report">
+            <Section title="Individual Performance Report" icon={faStar}>
                 <Form.Group as={Row} className="mb-3 align-items-center">
                     <Form.Label column sm={2}>Employee ID:</Form.Label>
                     <Col sm={8}>
@@ -354,69 +239,100 @@ function AssessmentHome() {
             </Section>
 
             {/* Topic-wise Performance Section */}
-            <Section title="Topic-wise Performance Report">
-                <Row className="mb-3">
-                    <Col md={6}>
-                        <Form.Group>
-                            <Form.Label>Filter by Main Topic</Form.Label>
-                            <Form.Control as="select" value={mainTopic} onChange={e => { setMainTopic(e.target.value); setSubTopic(''); handleFetchReport('main', e.target.value); }}>
-                                <option value="">Select a Main Topic...</option>
-                                <option value="Java">Java</option>
-                                <option value="Python">Python</option>
-                                {/* Add more main topics as needed */}
-                            </Form.Control>
-                        </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                        <Form.Group>
-                            <Form.Label>Filter by Sub-Topic</Form.Label>
-                            <Form.Control as="select" value={subTopic} onChange={e => { setSubTopic(e.target.value); setMainTopic(''); handleFetchReport('sub', e.target.value); }}>
-                                <option value="">Select a Sub-Topic...</option>
-                                <option value="OOPs">OOPs</option>
-                                <option value="Multithreading">Multithreading</option>
-                                <option value="Collections">Collections</option>
-                                {/* Add more sub-topics as needed */}
-                            </Form.Control>
-                        </Form.Group>
-                    </Col>
-                </Row>
-
-                {loading.report && <div className="text-center p-4"><Spinner animation="border" variant="primary" /></div>}
-                {error.report && <Alert variant="danger">{error.report}</Alert>}
-                {(reportData.length > 0 || topPerformer) && (
-                    <>
-                        <Card className="mb-4 bg-success-light">
-                            <Card.Body className="d-flex align-items-center">
-                                <FontAwesomeIcon icon={faTrophy} size="2x" className="text-success me-3" />
-                                <div>
-                                    <h5 className="card-title mb-0">Top Performer</h5>
-                                    <p className="card-text mb-0">{topPerformer}</p>
-                                </div>
+            <Section title="Topic-wise Performance Report" icon={faTrophy}>
+                <Row>
+                    {/* Filters Column */}
+                    <Col lg={4} className="mb-4 mb-lg-0">
+                        <Card>
+                            <Card.Body>
+                                <h6 className="card-title">Report Filters</h6>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Main Topic</Form.Label>
+                                    <Form.Select value={mainTopic} onChange={e => {
+                                        const value = e.target.value;
+                                        setMainTopic(value);
+                                        setSubTopic('');
+                                        if (value) handleFetchReport('main', value);
+                                    }} disabled={loading.mainTopics}>
+                                        <option value="">{loading.mainTopics ? "Loading..." : "Select Main Topic"}</option>
+                                        {mainTopicsList.map((topicName, index) => (
+                                            <option key={`${topicName}-${index}`} value={topicName}>
+                                                {topicName}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Sub-Topic</Form.Label>
+                                    <Form.Select value={subTopic} onChange={e => {
+                                        const value = e.target.value;
+                                        setSubTopic(value);
+                                        setMainTopic('');
+                                        if (value) handleFetchReport('sub', value);
+                                    }} disabled={!mainTopic || loading.subTopics}>
+                                        <option value="">{loading.subTopics ? "Loading..." : "Select Sub-Topic"}</option>
+                                        {subTopicsList.map((topicName, index) => (
+                                            <option key={`${topicName}-${index}`} value={topicName}>
+                                                {topicName}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                                <Button variant="outline-secondary" size="sm" onClick={handleClearReportFilters}>
+                                    <FontAwesomeIcon icon={faFilterCircleXmark} className="me-2" />Clear Filter
+                                </Button>
                             </Card.Body>
                         </Card>
-
-                        <Table striped bordered hover responsive className="shadow-sm">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Employee ID</th>
-                                    <th>Employee Name</th>
-                                    <th>Average Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {reportData.map((item, index) => (
-                                    <tr key={item.empId}>
-                                        <td>{index + 1}</td>
-                                        <td>{item.empId}</td>
-                                        <td>{item.empName} {item.isTopPerformer && <FontAwesomeIcon icon={faStar} className="text-warning ms-2" />}</td>
-                                        <td>{item.averagePercentage}%</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </>
-                )}
+                    </Col>
+                    
+                    {/* Results Column */}
+                    <Col lg={8}>
+                        {loading.report && <div className="text-center p-5"><Spinner animation="border" /></div>}
+                        {error.report && <Alert variant="danger">{error.report}</Alert>}
+                        
+                        {!loading.report && !error.report && (
+                            reportData.length > 0 ? (
+                                <>
+                                    {topPerformer && (
+                                        <Card className="mb-4 bg-success-light">
+                                            <Card.Body className="d-flex align-items-center">
+                                                <FontAwesomeIcon icon={faTrophy} size="2x" className="text-success me-3" />
+                                                <div>
+                                                    <h6 className="card-title mb-0">Top Performer</h6>
+                                                    <p className="card-text mb-0">{topPerformer}</p>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    )}
+                                    <Table striped bordered hover responsive size="sm">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Employee ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Average Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {reportData.map((item, index) => (
+                                                <tr key={item.empId}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{item.empId}</td>
+                                                    <td>{item.empName} {item.isTopPerformer && <FontAwesomeIcon icon={faStar} className="text-warning ms-2" />}</td>
+                                                    <td>{item.averagePercentage}%</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </>
+                            ) : (
+                                <div className="text-center text-muted p-5 empty-state">
+                                    <p>Select a topic to view the performance report.</p>
+                                </div>
+                            )
+                        )}
+                    </Col>
+                </Row>
             </Section>
         </Container>
     );
