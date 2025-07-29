@@ -6,7 +6,6 @@ import { getElementAtEvent } from 'react-chartjs-2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faChartLine, faUsers } from '@fortawesome/free-solid-svg-icons';
 
-// ✨ MODIFIED: Importing fetchBenchDetails for complete employee data
 import { fetchBenchDetails } from '../services/benchService';
 import {
     fetchDailyBenchStatus,
@@ -15,9 +14,8 @@ import {
     fetchAgingAnalysis
 } from '../services/analyticsService';
 
-import './ReportsPage.css'; // Make sure to have this CSS file
+import './ReportsPage.css'; 
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, Filler);
 
 // --- Helper to get default date range (last 3 months) ---
