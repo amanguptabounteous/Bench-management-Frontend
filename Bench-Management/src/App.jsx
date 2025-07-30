@@ -11,6 +11,7 @@ import AssessmentLanding from './pages/AssessmentSeperateComp/AssessmentHome';
 import ReportsPage from './pages/ReportsPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import Dashboard from './pages/Dashboard';
 import { Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/authContext';
 
@@ -42,6 +43,7 @@ function App() {
                         <Route path="/home" element={<BenchHomepage />} />
                         <Route path="/manage-users" element={<UserManagement />} />
                         <Route path="/bench-report" element={<ReportsPage />} />
+                        <Route path="/dashboard/:empId" element={<Dashboard />} />
                         {/* Add any other admin-only routes here */}
                     </Route>
                 </Route>
