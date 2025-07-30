@@ -16,6 +16,7 @@ import {
 
 import './ReportsPage.css'; 
 
+// 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, Filler);
 
 // --- Helper to get default date range (last 3 months) ---
