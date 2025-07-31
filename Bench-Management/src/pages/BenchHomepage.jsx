@@ -20,7 +20,10 @@ import "./BenchHomepage.css";
 import { fetchBenchDetails, updateCandidate, createRemarkForCandidate, deleteRemark } from "../services/benchService";
 import { fetchAssessmentByEmpId } from "../services/analyticsService";
 import { fetchFeedbackbyId } from "../services/feedbackService";
+// ✨ 1. ADD THE NEW IMPORT FOR MENTOR FEEDBACK
+import { getFeedbacksByCandidate } from "../services/mentorService";
 import FeedbackCard from "../components/FeedBackCard";
+import AddInterviewFeedbackModal from "../components/AddInterviewFeedbackModal";
 
 // Helper function
 const displayNA = (value) => (value === null || value === undefined || value === '') ? 'NA' : value;
@@ -70,6 +73,8 @@ function BenchHomepage() {
   const [filterBlockedBy, setFilterBlockedBy] = useState([]);
   const [filterAgingCategories, setFilterAgingCategories] = useState([]);
   const [filterYoe, setFilterYoe] = useState([]);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -111,8 +116,8 @@ function BenchHomepage() {
             yearsOfExperience: emp.experience,
             currentLocation: emp.baseLocation,
             remarks: emp.remarks || [],
-            trainerFeedbacks: null,
-            interviewFeedbacks: null,
+            trainerFeedbacks: null, // This will hold mentor feedback
+            interviewFeedbacks: null, // This will hold client feedback
             isFeedbackLoading: false,
             feedbackError: null,
             assessments: detailedScores,
@@ -143,6 +148,25 @@ function BenchHomepage() {
   const yoeRanges = ["0-2", "3-5", "6-8", "9+"];
 
   // --- Handlers ---
+  const handleFeedbackAdded = async (empId) => {
+    try {
+      const feedbackData = await fetchFeedbackbyId(empId);
+      setBenchData(prev => 
+        prev.map(p => 
+          p.empId === empId 
+            ? { ...p, interviewFeedbacks: feedbackData.interviewFeedbacks || [] } 
+            : p
+        )
+      );
+      setShowFeedbackModal(false);
+      setSelectedEmployee(null);
+    } catch (error) {
+      console.error(`Failed to refresh feedback for empId ${empId}:`, error);
+      alert('Feedback was added, but the view could not be refreshed automatically.');
+    }
+  };
+
+  // ✨ 2. UPDATE handleRowClick TO FETCH BOTH CLIENT AND MENTOR FEEDBACK
   const handleRowClick = async (empId) => {
     const person = benchData.find(p => p.empId === empId);
     if (expandedRow === empId) {
@@ -150,11 +174,25 @@ function BenchHomepage() {
       return;
     }
     setExpandedRow(empId);
+    
+    // Fetch data only if it hasn't been fetched before
     if (person && person.trainerFeedbacks === null) {
       try {
         setBenchData(prev => prev.map(p => p.empId === empId ? { ...p, isFeedbackLoading: true } : p));
-        const feedbackData = await fetchFeedbackbyId(empId);
-        setBenchData(prev => prev.map(p => p.empId === empId ? { ...p, trainerFeedbacks: feedbackData.trainerFeedbacks || [], interviewFeedbacks: feedbackData.interviewFeedbacks || [], isFeedbackLoading: false } : p));
+        
+        // Fetch client and mentor feedback concurrently
+        const [clientFeedbackData, mentorFeedbackData] = await Promise.all([
+            fetchFeedbackbyId(empId),
+            getFeedbacksByCandidate(empId)
+        ]);
+
+        setBenchData(prev => prev.map(p => p.empId === empId ? { 
+            ...p, 
+            trainerFeedbacks: mentorFeedbackData || [], // Store mentor feedback here
+            interviewFeedbacks: clientFeedbackData.interviewFeedbacks || [], 
+            isFeedbackLoading: false 
+        } : p));
+
       } catch (error) {
         console.error(`Failed to fetch feedback for empId ${empId}:`, error);
         setBenchData(prev => prev.map(p => p.empId === empId ? { ...p, isFeedbackLoading: false, feedbackError: "Could not load feedback." } : p));
@@ -304,10 +342,8 @@ function BenchHomepage() {
                       <th className="sortable-header" onClick={() => handleSort('primarySkill')}>Primary Skill {renderSortIcon('primarySkill')}</th>
                       <th className="sortable-header" onClick={() => handleSort('level')}>Level {renderSortIcon('level')}</th>
                       <th className="sortable-header" onClick={() => handleSort('yearsOfExperience')}>YoE {renderSortIcon('yearsOfExperience')}</th>
-                      {/* ✨ NEW COLUMNS */}
                       <th className="sortable-header" onClick={() => handleSort('accoliteDoj')}>DOJ {renderSortIcon('accoliteDoj')}</th>
                       <th className="sortable-header" onClick={() => handleSort('currentLocation')}>Location {renderSortIcon('currentLocation')}</th>
-
                       <th className="sortable-header" onClick={() => handleSort('sponsorName')}>Sponsor {renderSortIcon('sponsorName')}</th>
                       <th className="sortable-header" onClick={() => handleSort('agingDays')}>Aging {renderSortIcon('agingDays')}</th>
                       <th className="sortable-header" onClick={() => handleSort('ageingCategory')}>Category {renderSortIcon('ageingCategory')}</th>
@@ -330,17 +366,14 @@ function BenchHomepage() {
                             <td>{displayNA(person.primarySkill)}</td>
                             <td>{displayNA(person.level)}</td>
                             <td><Form.Control type="number" step="0.1" size="sm" className="editable-field" value={displayNA(currentPersonData.yearsOfExperience)} onChange={e => handleFieldChange(person.empId, 'yearsOfExperience', Number(e.target.value))} onClick={e => e.stopPropagation()} /></td>
-                            {/* ✨ NEW COLUMNS */}
                             <td>{displayNA(person.accoliteDoj)}</td>
                             <td>{displayNA(person.currentLocation)}</td>
-
                             <td><Form.Control type="text" size="sm" className="editable-field" value={displayNA(currentPersonData.sponsorName)} onChange={e => handleFieldChange(person.empId, 'sponsorName', e.target.value)} onClick={e => e.stopPropagation()} /></td>
                             <td><OverlayTrigger placement="top" overlay={<Tooltip>Dept: {displayNA(person.departmentName)}<br />Bench: {displayNA(person.benchStartDate)} to {displayNA(person.benchEndDate) || 'Present'}</Tooltip>}><span className="aging-tooltip">{displayNA(person.agingDays)} days</span></OverlayTrigger></td>
                             <td>{displayNA(person.ageingCategory)}</td>
                             <td className="text-center"><Form.Check type="switch" id={`deployable-${person.empId}`} checked={!!currentPersonData.isDeployable} onChange={e => handleFieldChange(person.empId, 'isDeployable', e.target.checked)} onClick={e => e.stopPropagation()} /></td>
                             <td><Form.Control type="text" size="sm" className="editable-field" value={displayNA(currentPersonData.blockedBy)} onChange={e => handleFieldChange(person.empId, 'blockedBy', e.target.value)} onClick={e => e.stopPropagation()} /></td>
                             <td><Form.Select size="sm" className="editable-field" value={displayNA(currentPersonData.status)} onChange={e => handleFieldChange(person.empId, 'status', e.target.value)} onClick={e => e.stopPropagation()}>{uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}</Form.Select></td>
-                            {/* ✨ MODIFIED: OverlayTrigger now wraps the entire table cell (td) */}
                             <OverlayTrigger placement="left" overlay={renderAssessmentTooltip(person.assessments)}>
                               <td className="text-center">
                                 <span className={person.hasPendingAssessments ? 'text-danger fw-bold' : ''}>
@@ -359,7 +392,7 @@ function BenchHomepage() {
                           </tr>
                           {expandedRow === person.empId && (
                             <tr className="expanded-row">
-                              <td colSpan="14">
+                              <td colSpan="17">
                                 <div className="expanded-content">
                                   <div className="details-section">
                                     <h6>Remarks</h6>
@@ -390,7 +423,20 @@ function BenchHomepage() {
                                   </div>
 
                                   <div className="details-section">
-                                    <h6>Client Feedback</h6>
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                      <h6>Client Feedback</h6>
+                                      <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedEmployee(person);
+                                          setShowFeedbackModal(true);
+                                        }}
+                                      >
+                                        <FontAwesomeIcon icon={faPlus} /> Add Feedback
+                                      </Button>
+                                    </div>
                                     <div className="feedback-scroll-container">
                                       {person.isFeedbackLoading ? (<div className="text-center p-3"><Spinner animation="border" size="sm" /></div>) : person.feedbackError ? (<Alert variant="danger" size="sm">{person.feedbackError}</Alert>) : (
                                         <ul className="list-unstyled mb-0">
@@ -399,16 +445,28 @@ function BenchHomepage() {
                                       )}
                                     </div>
                                   </div>
+                                  
+                                  {/* ✨ 3. UPDATE THE MENTOR'S FEEDBACK SECTION */}
                                   <div className="details-section">
                                     <h6>Mentor's Feedback</h6>
                                     <div className="feedback-scroll-container">
-                                      {person.isFeedbackLoading ? (<div className="text-center p-3"><Spinner animation="border" size="sm" /></div>) : person.feedbackError ? (null) : (
+                                      {person.isFeedbackLoading ? (<div className="text-center p-3"><Spinner animation="border" size="sm" /></div>) : person.feedbackError ? (<Alert variant="danger" size="sm">{person.feedbackError}</Alert>) : (
                                         <ul className="list-unstyled mb-0">
-                                          {person.trainerFeedbacks && person.trainerFeedbacks.length > 0 ? person.trainerFeedbacks.map((fb, i) => <li key={`trainer-fb-${i}`}><FeedbackCard feedbackString={fb} /></li>) : <li>No mentor feedback found.</li>}
+                                          {person.trainerFeedbacks && person.trainerFeedbacks.length > 0 ? (
+                                            person.trainerFeedbacks.map((fb) => (
+                                              <li key={fb.mentor_feedback_id} className="feedback-item-simple">
+                                                <span className="feedback-meta-simple"><b>{new Date(fb.date).toLocaleDateString()} - {fb.trainer_name}: </b></span>
+                                                <span className="feedback-text-simple">{fb.mentor_feedback}</span>
+                                              </li>
+                                            ))
+                                          ) : (
+                                            <li>No mentor feedback found.</li>
+                                          )}
                                         </ul>
                                       )}
                                     </div>
                                   </div>
+
                                   <div className="details-section">
                                     <h6>Detailed Assessments</h6>
                                     <div className="feedback-scroll-container">
@@ -431,6 +489,12 @@ function BenchHomepage() {
               )}
         </Container>
       </div>
+      <AddInterviewFeedbackModal
+        show={showFeedbackModal}
+        onHide={() => setShowFeedbackModal(false)}
+        employee={selectedEmployee}
+        onSuccess={handleFeedbackAdded}
+      />
     </div>
   );
 }

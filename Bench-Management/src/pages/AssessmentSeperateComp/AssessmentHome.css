@@ -1,42 +1,106 @@
-/* AssessmentHome.css */
+/* --- Global & Typography --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .assessment-home-page {
-    background-color: #f8f9fa;
-    min-height: 100vh;
+    background-color: #f8f9fa; /* Lighter grey background */
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
 }
 
-.assessment-home-page h1 {
-    color: #343a40;
-    font-weight: 300;
+.page-title {
+    color: #212529;
+    font-weight: 600;
+    font-size: 1.5rem;
 }
 
-.card {
-    border: none;
-    border-radius: 0.75rem;
-    transition: all 0.3s ease-in-out;
+/* --- Main Card & Tabs --- */
+.report-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff;
 }
 
-.card-header {
-    border-bottom: 1px solid #e9ecef;
+.report-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.report-tabs .nav-link {
+    color: #495057;
     font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: -1px; /* Align with card border */
+}
+
+.report-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.report-tabs .nav-link:hover {
+    color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+/* --- Filters --- */
+.filter-row .form-label {
+    font-weight: 500;
+    font-size: 0.85rem;
     color: #495057;
 }
 
-.bg-primary-light {
-    background-color: rgba(0, 123, 255, 0.1);
+.form-select-sm {
+    font-size: 0.85rem;
+    border-radius: 6px;
 }
 
-.bg-success-light {
-    background-color: rgba(40, 167, 69, 0.1);
+/* --- Table Styling --- */
+.report-table {
+    font-size: 0.875rem; /* 14px */
 }
 
-.table thead th {
-    background-color: #e9ecef;
-    border-bottom-width: 2px;
+.report-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    border-top: none;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem; /* 12px */
+    letter-spacing: 0.5px;
 }
 
-.badge {
+.report-table th,
+.report-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.report-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.report-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* --- Chart Styling --- */
+.chart-title {
+    text-align: center;
     font-size: 0.9rem;
-    padding: 0.5em 0.75em;
-    margin: 0.2em;
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 1rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 380px;
+    width: 100%;
 }

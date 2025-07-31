@@ -1,339 +1,294 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table, Spinner, Alert, Badge } from 'react-bootstrap';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import { Doughnut, Bar } from 'react-chartjs-2';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Container, Row, Col, Card, Form, Table, Spinner, Alert, Badge, Nav, Tab } from 'react-bootstrap';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { getElementAtEvent } from 'react-chartjs-2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faTrophy, faStar, faFileClipboard, faFilterCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTrophy, faStar, faExclamationTriangle, faChartBar } from '@fortawesome/free-solid-svg-icons';
 
 import {
-    fetchAssessmentByEmpId,
-    fetchReportByMainTopic,
-    fetchReportByTopic,
-    fetchTopPerformerByMainTopic,
-    fetchTopPerformerByTopic,
+    fetchSkillProficiency,
+    fetchSubTopicProficiency,
+    fetchNeedsSupport,
+    fetchEmployeesWithDetails
+} from '../../services/assessmentReportDetailsService';
+import {
     fetchAllMainTopics,
-    fetchSubTopicsByMainTopic
+    fetchReportByMainTopic,
+    fetchSubTopicsByMainTopic,
+    fetchReportByTopic
 } from '../../services/analyticsService';
+import CandidateAnalyticsSection from '../../components/CandidateAnalytics';
 
 import './AssessmentHome.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// --- Helper Components ---
-const StatCard = ({ title, value, icon, variant }) => (
-    <Card className={`stat-card shadow-sm text-center h-100 bg-${variant}-light`}>
-        <Card.Body>
-            <FontAwesomeIcon icon={icon} size="2x" className={`text-${variant} mb-3`} />
-            <h5 className="card-title">{title}</h5>
-            <p className="card-text fs-4 fw-bold">{value}</p>
-        </Card.Body>
-    </Card>
-);
+// --- Chart Options for Minimalist Design ---
+const commonChartOptions = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: false, // Hide legend
+        },
+        tooltip: {
+            backgroundColor: '#212529',
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 12 },
+            padding: 10,
+            cornerRadius: 4,
+            displayColors: false,
+        },
+    },
+    scales: {
+        x: {
+            grid: {
+                display: false, // Hide x-axis grid lines
+            },
+            ticks: {
+                font: { size: 10 }
+            }
+        },
+        y: {
+            grid: {
+                display: false, // Hide y-axis grid lines
+            },
+            ticks: {
+                font: { size: 11 }
+            }
+        }
+    }
+};
 
-const Section = ({ title, icon, children }) => (
-    <Card className="shadow-sm mb-4">
-        <Card.Header as="h5" className="fw-normal bg-light">
-            <FontAwesomeIcon icon={icon} className="me-2" /> {title}
-        </Card.Header>
-        <Card.Body>{children}</Card.Body>
-    </Card>
-);
 
 // --- Main Component ---
 function AssessmentHome() {
     // --- State Management ---
+    const [activeTab, setActiveTab] = useState('leaderboard');
     const [loading, setLoading] = useState({});
     const [error, setError] = useState({});
-
-    // Individual Performance State
-    const [empId, setEmpId] = useState('');
-    const [employeeData, setEmployeeData] = useState(null);
-
-    // Topic-wise Report State
-    const [mainTopic, setMainTopic] = useState('');
-    const [subTopic, setSubTopic] = useState('');
-    const [reportData, setReportData] = useState([]);
-    const [topPerformer, setTopPerformer] = useState('');
-
-    // State for dynamic topic lists
-    const [mainTopicsList, setMainTopicsList] = useState([]);
+    const [mainTopics, setMainTopics] = useState([]);
+    
+    // State for Leaderboard tab
+    const [selectedSkill, setSelectedSkill] = useState('');
+    const [selectedSubTopic, setSelectedSubTopic] = useState('');
     const [subTopicsList, setSubTopicsList] = useState([]);
+    const [leaderboardData, setLeaderboardData] = useState([]);
 
+    // State for Skill Gaps tab
+    const [skillProficiencyData, setSkillProficiencyData] = useState([]);
+    const [skillForSubtopics, setSkillForSubtopics] = useState(''); 
+    const [subTopicChartData, setSubTopicChartData] = useState([]);
 
-    // --- Effects for Data Fetching ---
+    // State for Needs Support tab
+    const [needsSupportData, setNeedsSupportData] = useState([]);
+
+    const proficiencyChartRef = useRef();
+
+    // --- Initial Data Load ---
     useEffect(() => {
-        const loadMainTopics = async () => {
-            setLoading(prev => ({ ...prev, mainTopics: true }));
+        const loadInitialData = async () => {
+            setLoading(prev => ({ ...prev, initial: true }));
             try {
-                const data = await fetchAllMainTopics();
-                setMainTopicsList(data || []);
+                const [topics, proficiencyReports] = await Promise.all([
+                    fetchAllMainTopics(),
+                    fetchSkillProficiency()
+                ]);
+                setMainTopics(topics || []);
+                setSkillProficiencyData(proficiencyReports || []);
+                
+                if (topics && topics.length > 0) {
+                    setSelectedSkill(topics[0]);
+                    setSkillForSubtopics(topics[0]);
+                }
             } catch (err) {
-                setError(prev => ({ ...prev, mainTopics: "Could not load main topics." }));
+                setError(prev => ({ ...prev, initial: "Could not load initial dashboard data." }));
             } finally {
-                setLoading(prev => ({ ...prev, mainTopics: false }));
+                setLoading(prev => ({ ...prev, initial: false }));
             }
         };
-        loadMainTopics();
+        loadInitialData();
     }, []);
 
+    // --- Data Fetching for Leaderboard ---
     useEffect(() => {
+        if (!selectedSkill) return;
         const loadSubTopics = async () => {
-            if (!mainTopic) {
-                setSubTopicsList([]);
-                return;
-            }
-            setLoading(prev => ({ ...prev, subTopics: true }));
-            setSubTopicsList([]);
+            setLoading(prev => ({ ...prev, subTopicList: true }));
             try {
-                const data = await fetchSubTopicsByMainTopic(mainTopic);
+                const data = await fetchSubTopicsByMainTopic(selectedSkill);
                 setSubTopicsList(data || []);
-            } catch (err) {
-                console.error(`Error fetching sub-topics for ${mainTopic}`, err);
-                setSubTopicsList([]);
-            } finally {
-                setLoading(prev => ({ ...prev, subTopics: false }));
-            }
+            } catch (err) { console.error(err); setSubTopicsList([]); } 
+            finally { setLoading(prev => ({ ...prev, subTopicList: false })); }
         };
         loadSubTopics();
-    }, [mainTopic]);
+        setSelectedSubTopic('');
+    }, [selectedSkill]);
 
-
-    // --- Data Fetching Handlers ---
-    const handleFetchEmployeeData = async () => {
-        if (!empId) return;
-        setLoading(prev => ({ ...prev, employee: true }));
-        setError(prev => ({ ...prev, employee: null }));
-        setEmployeeData(null);
-        try {
-            const data = await fetchAssessmentByEmpId(empId);
-            setEmployeeData(data);
-        } catch (err) {
-            setError(prev => ({ ...prev, employee: `Could not find data for Employee ID: ${empId}` }));
-        } finally {
-            setLoading(prev => ({ ...prev, employee: false }));
+    useEffect(() => {
+        const fetchLeaderboardData = async () => {
+            setLoading(prev => ({ ...prev, leaderboard: true }));
+            try {
+                let report;
+                if (selectedSubTopic) {
+                    report = await fetchReportByTopic(selectedSubTopic);
+                } else if (selectedSkill) {
+                    report = await fetchReportByMainTopic(selectedSkill);
+                }
+                const sortedReport = (report || []).sort((a, b) => b.averagePercentage - a.averagePercentage);
+                setLeaderboardData(sortedReport);
+            } catch (err) {
+                setError(prev => ({ ...prev, leaderboard: `Could not load leaderboard data.` }));
+            } finally {
+                setLoading(prev => ({ ...prev, leaderboard: false }));
+            }
+        };
+        if (activeTab === 'leaderboard' && selectedSkill) {
+            fetchLeaderboardData();
         }
-    };
+    }, [selectedSkill, selectedSubTopic, activeTab]);
 
-    const handleFetchReport = async (type, value) => {
-        if (!value) return;
-        setLoading(prev => ({ ...prev, report: true }));
-        setError(prev => ({ ...prev, report: null }));
-        setReportData([]);
-        setTopPerformer('');
-        try {
-            const fetcher = type === 'main' ? fetchReportByMainTopic : fetchReportByTopic;
-            const performerFetcher = type === 'main' ? fetchTopPerformerByMainTopic : fetchTopPerformerByTopic;
 
-            const [report, performer] = await Promise.all([fetcher(value), performerFetcher(value)]);
-            setReportData(report || []);
-            setTopPerformer(performer || 'Not available.');
-        } catch (err) {
-            setError(prev => ({ ...prev, report: `Could not fetch report for ${value}.` }));
-        } finally {
-            setLoading(prev => ({ ...prev, report: false }));
+    // --- Data Fetching for Skill Gaps Sub-Topics ---
+    useEffect(() => {
+        if (!skillForSubtopics || activeTab !== 'skillGaps') return;
+        const loadSubTopicChart = async () => {
+            setLoading(prev => ({ ...prev, subtopics: true }));
+            try {
+                const data = await fetchSubTopicProficiency(skillForSubtopics);
+                setSubTopicChartData(data || []);
+            } catch (err) {
+                setError(prev => ({ ...prev, subtopics: `Could not load sub-topics for ${skillForSubtopics}` }));
+            } finally {
+                setLoading(prev => ({ ...prev, subtopics: false }));
+            }
+        };
+        loadSubTopicChart();
+    }, [skillForSubtopics, activeTab]);
+
+    // --- Fetch "Needs Support" data when tab is active ---
+    useEffect(() => {
+        if (activeTab === 'needsSupport') {
+            const fetchSupportData = async () => {
+                setLoading(prev => ({ ...prev, support: true }));
+                try {
+                    const data = await fetchNeedsSupport();
+                    setNeedsSupportData(data || []);
+                } catch (err) {
+                    setError(prev => ({ ...prev, support: "Could not load 'Needs Support' data." }));
+                } finally {
+                    setLoading(prev => ({ ...prev, support: false }));
+                }
+            };
+            fetchSupportData();
         }
-    };
-    
-    const handleClearReportFilters = () => {
-        setMainTopic('');
-        setSubTopic('');
-        setReportData([]);
-        setTopPerformer('');
-        setError(prev => ({ ...prev, report: null }));
-    };
+    }, [activeTab]);
 
 
     // --- Chart Data Preparation ---
-    const completionChartData = {
-        labels: ['Completed', 'Pending'],
-        datasets: [{
-            data: [employeeData?.completionStatus?.completed || 0, employeeData?.completionStatus?.pending || 0],
-            backgroundColor: ['#28a745', '#ffc107'],
-            borderColor: '#ffffff',
-            borderWidth: 2,
-        }],
-    };
+    const proficiencyChartData = useMemo(() => ({
+        labels: skillProficiencyData.map(s => s.skill),
+        datasets: [{ label: 'Average Score', data: skillProficiencyData.map(s => s.averageScore), backgroundColor: '#a5b4fc' }],
+    }), [skillProficiencyData]);
 
-    const scoresChartData = {
-        labels: employeeData?.perTopicScores?.map(s => s.topic) || [],
-        datasets: [{
-            label: 'Score (%)',
-            data: employeeData?.perTopicScores?.map(s => Math.round((s.empScore / s.totalScore) * 100)) || [],
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1,
-        }],
+    const subTopicDisplayChartData = useMemo(() => ({
+        labels: subTopicChartData.map(s => s.subTopic),
+        datasets: [{ label: 'Average Score', data: subTopicChartData.map(s => s.averageScore), backgroundColor: '#7dd3fc' }],
+    }), [subTopicChartData]);
+
+    // ✨ FIX: Corrected chart click handler
+    const handleProficiencyChartClick = (event) => {
+        if (!proficiencyChartRef.current) return;
+        const element = getElementAtEvent(proficiencyChartRef.current, event);
+        
+        if (element.length > 0) {
+            const skillIndex = element[0].index;
+            const skillName = proficiencyChartData.labels[skillIndex];
+            setSkillForSubtopics(skillName);
+            setActiveTab('skillGaps');
+        }
     };
 
     return (
-        <Container fluid className="assessment-home-page p-4">
-            <div className="dashboard-header mb-4">
-                <FontAwesomeIcon icon={faFileClipboard} size="2x" className="text-primary" />
-                <div>
-                    <h1 className="mb-0">Assessment Analytics</h1>
-                    <p className="text-muted mb-0">Analyze individual and topic-wise performance.</p>
-                </div>
-            </div>
-
-            {/* Individual Performance Section */}
-            <Section title="Individual Performance Report" icon={faStar}>
-                <Form.Group as={Row} className="mb-3 align-items-center">
-                    <Form.Label column sm={2}>Employee ID:</Form.Label>
-                    <Col sm={8}>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter Employee ID (e.g., 101)"
-                            value={empId}
-                            onChange={(e) => setEmpId(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleFetchEmployeeData()}
-                        />
-                    </Col>
-                    <Col sm={2}>
-                        <Button onClick={handleFetchEmployeeData} className="w-100" disabled={loading.employee}>
-                            {loading.employee ? <Spinner as="span" animation="border" size="sm" /> : <><FontAwesomeIcon icon={faSearch} /> Search</>}
-                        </Button>
-                    </Col>
-                </Form.Group>
-
-                {loading.employee && <div className="text-center p-4"><Spinner animation="border" variant="primary" /></div>}
-                {error.employee && <Alert variant="danger">{error.employee}</Alert>}
-                {employeeData && (
-                    <Row className="mt-4 g-4">
-                        <Col md={4}>
-                            <Row className="g-4">
-                                <Col xs={12}>
-                                    <StatCard title="Overall Average" value={`${employeeData.averagePercentage || 0}%`} icon={faStar} variant="primary" />
-                                </Col>
-                                <Col xs={12}>
-                                    <Card className="shadow-sm text-center h-100">
-                                        <Card.Body>
-                                            <h5 className="card-title">Completion Status</h5>
-                                            <div style={{ height: '200px' }}>
-                                                <Doughnut data={completionChartData} options={{ responsive: true, maintainAspectRatio: false }} />
-                                            </div>
-                                            <div className="mt-3">
-                                                <strong>Pending Topics:</strong>
-                                                {employeeData.completionStatus.pendingTopics.length > 0 ? (
-                                                    <ul className="list-unstyled mt-2">
-                                                        {employeeData.completionStatus.pendingTopics.map(topic => <li key={topic}><Badge bg="warning" text="dark">{topic}</Badge></li>)}
-                                                    </ul>
-                                                ) : <p className="text-muted">None</p>}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </Col>
-                        <Col md={8}>
-                            <Card className="shadow-sm h-100">
-                                <Card.Body>
-                                    <h5 className="card-title">Scores per Topic</h5>
-                                    <div style={{ height: '400px' }}>
-                                        <Bar data={scoresChartData} options={{ responsive: true, maintainAspectRatio: false, indexAxis: 'y' }} />
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-                )}
-            </Section>
-
-            {/* Topic-wise Performance Section */}
-            <Section title="Topic-wise Performance Report" icon={faTrophy}>
-                <Row>
-                    {/* Filters Column */}
-                    <Col lg={4} className="mb-4 mb-lg-0">
-                        <Card>
-                            <Card.Body>
-                                <h6 className="card-title">Report Filters</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Main Topic</Form.Label>
-                                    <Form.Select value={mainTopic} onChange={e => {
-                                        const value = e.target.value;
-                                        setMainTopic(value);
-                                        setSubTopic('');
-                                        if (value) handleFetchReport('main', value);
-                                    }} disabled={loading.mainTopics}>
-                                        <option value="">{loading.mainTopics ? "Loading..." : "Select Main Topic"}</option>
-                                        {mainTopicsList.map((topicName, index) => (
-                                            <option key={`${topicName}-${index}`} value={topicName}>
-                                                {topicName}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
+        <Container fluid className="assessment-home-page p-3 p-md-4">
+            <h2 className="page-title">Competency & Training Dashboard</h2>
+            <Card className="report-card">
+                <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+                    <Card.Header className="p-0">
+                        <Nav variant="tabs" className="report-tabs">
+                            <Nav.Item><Nav.Link eventKey="leaderboard"><FontAwesomeIcon icon={faTrophy} className="me-2" />Leaderboard</Nav.Link></Nav.Item>
+                            <Nav.Item><Nav.Link eventKey="skillGaps"><FontAwesomeIcon icon={faChartBar} className="me-2" />Skill Gaps</Nav.Link></Nav.Item>
+                            <Nav.Item><Nav.Link eventKey="needsSupport"><FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />Needs Support</Nav.Link></Nav.Item>
+                        </Nav>
+                    </Card.Header>
+                    <Card.Body className="p-2 p-md-3">
+                        <Tab.Content>
+                            <Tab.Pane eventKey="leaderboard">
+                                <Form.Group as={Row} className="mb-3 align-items-center gx-2 filter-row">
+                                    <Form.Label column sm="auto">Main Skill:</Form.Label>
+                                    <Col sm={3}>
+                                        <Form.Select size="sm" value={selectedSkill} onChange={e => setSelectedSkill(e.target.value)}>
+                                            {mainTopics.map(topic => <option key={topic} value={topic}>{topic}</option>)}
+                                        </Form.Select>
+                                    </Col>
+                                    <Form.Label column sm="auto">Sub-Topic:</Form.Label>
+                                    <Col sm={3}>
+                                        <Form.Select size="sm" value={selectedSubTopic} onChange={e => setSelectedSubTopic(e.target.value)} disabled={loading.subTopicList || subTopicsList.length === 0}>
+                                            <option value="">All Sub-Topics</option>
+                                            {subTopicsList.map(topic => <option key={topic} value={topic}>{topic}</option>)}
+                                        </Form.Select>
+                                    </Col>
                                 </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Sub-Topic</Form.Label>
-                                    <Form.Select value={subTopic} onChange={e => {
-                                        const value = e.target.value;
-                                        setSubTopic(value);
-                                        setMainTopic('');
-                                        if (value) handleFetchReport('sub', value);
-                                    }} disabled={!mainTopic || loading.subTopics}>
-                                        <option value="">{loading.subTopics ? "Loading..." : "Select Sub-Topic"}</option>
-                                        {subTopicsList.map((topicName, index) => (
-                                            <option key={`${topicName}-${index}`} value={topicName}>
-                                                {topicName}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
-                                <Button variant="outline-secondary" size="sm" onClick={handleClearReportFilters}>
-                                    <FontAwesomeIcon icon={faFilterCircleXmark} className="me-2" />Clear Filter
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    
-                    {/* Results Column */}
-                    <Col lg={8}>
-                        {loading.report && <div className="text-center p-5"><Spinner animation="border" /></div>}
-                        {error.report && <Alert variant="danger">{error.report}</Alert>}
-                        
-                        {!loading.report && !error.report && (
-                            reportData.length > 0 ? (
-                                <>
-                                    {topPerformer && (
-                                        <Card className="mb-4 bg-success-light">
-                                            <Card.Body className="d-flex align-items-center">
-                                                <FontAwesomeIcon icon={faTrophy} size="2x" className="text-success me-3" />
-                                                <div>
-                                                    <h6 className="card-title mb-0">Top Performer</h6>
-                                                    <p className="card-text mb-0">{topPerformer}</p>
-                                                </div>
-                                            </Card.Body>
-                                        </Card>
-                                    )}
-                                    <Table striped bordered hover responsive size="sm">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Employee ID</th>
-                                                <th>Employee Name</th>
-                                                <th>Average Score</th>
-                                            </tr>
-                                        </thead>
+                                {loading.leaderboard ? <div className="text-center p-5"><Spinner animation="border" size="sm" /></div> :
+                                <div className="table-responsive">
+                                    <Table hover className="report-table">
+                                        <thead><tr><th>Rank</th><th>Employee</th><th>Avg. Score</th></tr></thead>
                                         <tbody>
-                                            {reportData.map((item, index) => (
-                                                <tr key={item.empId}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{item.empId}</td>
-                                                    <td>{item.empName} {item.isTopPerformer && <FontAwesomeIcon icon={faStar} className="text-warning ms-2" />}</td>
-                                                    <td>{item.averagePercentage}%</td>
-                                                </tr>
-                                            ))}
+                                            {leaderboardData.map((p, index) => <tr key={p.empId}><td><Badge pill bg="light" text="dark">{index + 1}</Badge></td><td>{p.empName} {p.isTopPerformer && <FontAwesomeIcon icon={faStar} className="text-warning ms-1" />}</td><td className="fw-bold">{p.averagePercentage.toFixed(1)}%</td></tr>)}
                                         </tbody>
                                     </Table>
-                                </>
-                            ) : (
-                                <div className="text-center text-muted p-5 empty-state">
-                                    <p>Select a topic to view the performance report.</p>
-                                </div>
-                            )
-                        )}
-                    </Col>
-                </Row>
-            </Section>
+                                </div>}
+                            </Tab.Pane>
+
+                            <Tab.Pane eventKey="skillGaps">
+                                <Row>
+                                    <Col md={6}>
+                                        <h6 className="chart-title">Overall Skill Proficiency</h6>
+                                        <div className="chart-container">
+                                            <Bar ref={proficiencyChartRef} data={proficiencyChartData} options={commonChartOptions} onClick={handleProficiencyChartClick} />
+                                        </div>
+                                        <p className="text-center text-muted small mt-2">Click a bar to see sub-topic details</p>
+                                    </Col>
+                                    <Col md={6}>
+                                        <h6 className="chart-title">Sub-Topic Deep Dive for <span className="fw-bold text-primary">{skillForSubtopics}</span></h6>
+                                        {loading.subtopics ? <div className="text-center p-5"><Spinner animation="border" size="sm" /></div> :
+                                        <div className="chart-container">
+                                            <Bar data={subTopicDisplayChartData} options={commonChartOptions} />
+                                        </div>}
+                                    </Col>
+                                </Row>
+                            </Tab.Pane>
+                            
+                            <Tab.Pane eventKey="needsSupport">
+                                <h6 className="mb-3">Employees Flagged for Support</h6>
+                                {loading.support ? <div className="text-center p-5"><Spinner animation="border" size="sm" /></div> :
+                                <div className="table-responsive">
+                                    <Table hover className="report-table">
+                                        <thead><tr><th>Employee</th><th>Primary Skill</th><th>Avg. Score</th><th>Overdue</th><th>Reason</th></tr></thead>
+                                        <tbody>
+                                            {needsSupportData.map(p => <tr key={p.empId}><td>{p.name}</td><td>{p.primarySkill}</td><td><Badge bg={p.averageScore < 60 ? 'danger-subtle' : 'warning-subtle'} text={p.averageScore < 60 ? 'danger-emphasis' : 'warning-emphasis'}>{p.averageScore.toFixed(1)}%</Badge></td><td>{p.overdueAssessments}</td><td><Badge bg="danger-subtle" text="danger-emphasis" pill>{p.flagReason}</Badge></td></tr>)}
+                                            {needsSupportData.length === 0 && <tr><td colSpan="5" className="text-center text-muted py-4">No data available. This requires a dedicated backend API.</td></tr>}
+                                        </tbody>
+                                    </Table>
+                                </div>}
+                            </Tab.Pane>
+                        </Tab.Content>
+                    </Card.Body>
+                </Tab.Container>
+            </Card>
+            <CandidateAnalyticsSection />
         </Container>
     );
 }

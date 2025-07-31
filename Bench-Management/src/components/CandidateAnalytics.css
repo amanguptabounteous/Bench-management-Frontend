@@ -1,0 +1,102 @@
+/* src/components/CandidateAnalyticsSection.css */
+
+/* --- Main Card Styling --- */
+.analytics-card {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 0.75rem;
+    overflow: hidden; /* Ensures child elements conform to border radius */
+}
+
+.analytics-card .card-header {
+    background-color: #f8f9fa; /* Light gray background */
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+.analytics-card .card-body {
+    padding: 1.5rem;
+}
+
+/* --- Search Bar & Results --- */
+.search-results-list {
+    max-height: 250px;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-results-list .list-group-item {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+/* --- Content Area Styling --- */
+.chart-title {
+    color: #495057; /* Darker gray for titles */
+}
+
+/* --- Mentor Feedback Section --- */
+.feedback-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensures the column takes full height */
+}
+
+.feedback-list {
+    flex-grow: 1; /* Allows the list to take up available space */
+    overflow-y: auto;
+    max-height: 350px; /* Set a max height for scrolling */
+    padding-right: 10px; /* Space for scrollbar */
+}
+
+/* Individual Feedback Item - This is the main UI fix */
+.feedback-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.feedback-item:hover {
+    background-color: #e9ecef;
+}
+
+.feedback-meta {
+    flex-shrink: 0; /* Prevents this column from shrinking */
+    width: 110px;
+    text-align: right;
+    margin-right: 1rem;
+    font-size: 0.75rem;
+    color: #6c757d; /* Muted text color */
+}
+
+.feedback-meta .trainer-name {
+    font-style: italic;
+}
+
+.feedback-content {
+    flex-grow: 1;
+    font-size: 0.9rem;
+    word-break: break-word; /* Prevents long text from overflowing */
+}
+
+.feedback-actions {
+    margin-left: 1rem;
+}
+
+.feedback-actions .btn-link {
+    padding: 0;
+    line-height: 1;
+    color: #dc3545; /* Red for delete icon */
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.feedback-actions .btn-link:hover {
+    opacity: 1;
+}

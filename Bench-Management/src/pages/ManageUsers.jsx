@@ -7,6 +7,13 @@ import { addCandidateManually } from '../services/candidateService';
 import { fetchFilterOptions } from '../services/benchService';
 import './ManageUsers.css';
 
+
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+const day = String(today.getDate()).padStart(2, '0');
+const todayDateString = `${year}-${month}-${day}`;
+
 const initialCandidateState = {
     empId: '',
     name: '',
@@ -14,15 +21,15 @@ const initialCandidateState = {
     level: '',
     email: '',
     departmentName: '',
-    benchStartDate: '',
-    isDeployable: false,
+    benchStartDate: todayDateString,
+    isDeployable: true,
     secondarySkill: '',
     sponsorName: '',
     experience: '',
     thLink: '',
     accoliteDoj: '',
     baseLocation: '',
-    personStatus: 'ONBOARDED' // Default value
+    personStatus: 'UNDER_EVALUATION' // Default value
 };
 
 function ManageUsers() {
