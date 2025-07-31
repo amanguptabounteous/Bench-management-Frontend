@@ -330,7 +330,6 @@ function BenchHomepage() {
       </div>
       <div className="main-content">
         <Container fluid>
-          <h2 className="mb-4">Bench Dashboard</h2>
           {loading ? (<div className="text-center p-5"><Spinner animation="border" variant="primary" /> <span className="ms-2">Loading Resources...</span></div>)
             : error ? (<Alert variant="danger">{error}</Alert>)
               : (
@@ -396,8 +395,9 @@ function BenchHomepage() {
                                 <div className="expanded-content">
                                   <div className="details-section">
                                     <h6>Remarks</h6>
-                                    <InputGroup className="mb-3">
+                                    <InputGroup className="mb-2">
                                       <Form.Control
+                                      className="remark-input"
                                         placeholder="Add a new remark..."
                                         value={newRemarkInputs[person.empId] || ''}
                                         onChange={e => setNewRemarkInputs(prev => ({ ...prev, [person.empId]: e.target.value }))}

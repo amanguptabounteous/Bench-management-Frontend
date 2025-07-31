@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Spinner, Alert, ListGroup, ButtonGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faUserShield, faChalkboardTeacher, faUserTie, faEnvelope, faKey, faUser } from '@fortawesome/free-solid-svg-icons';
-import { registerAdmin, addTrainerEmail, getAllTrainerEmails } from '../services/addAccessService';
+import { faUserPlus, faUserShield, faChalkboardTeacher, faUserTie, faEnvelope, faKey, faUser, faSync } from '@fortawesome/free-solid-svg-icons';
+// ✨ Import the new sync functions
+import { 
+    registerAdmin, 
+    addTrainerEmail, 
+    getAllTrainerEmails,
+    synchBenchwithApi,
+    synchAssessmentToDatabase
+} from '../services/addAccessService';
 import { addCandidateManually } from '../services/candidateService';
 import { fetchFilterOptions } from '../services/benchService';
 import './ManageUsers.css';
 
-
+// Get today's date in YYYY-MM-DD format
 const today = new Date();
 const year = today.getFullYear();
 const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
@@ -22,14 +29,14 @@ const initialCandidateState = {
     email: '',
     departmentName: '',
     benchStartDate: todayDateString,
-    isDeployable: true,
+    isDeployable: false,
     secondarySkill: '',
     sponsorName: '',
     experience: '',
     thLink: '',
     accoliteDoj: '',
     baseLocation: '',
-    personStatus: 'UNDER_EVALUATION' // Default value
+    personStatus: 'ONBOARDED'
 };
 
 function ManageUsers() {
@@ -46,6 +53,12 @@ function ManageUsers() {
     const [candidateLoading, setCandidateLoading] = useState(false);
     const [candidateError, setCandidateError] = useState('');
     const [candidateSuccess, setCandidateSuccess] = useState('');
+    
+    // ✨ New state for the top-level sync buttons
+    const [syncBenchLoading, setSyncBenchLoading] = useState(false);
+    const [syncBenchMessage, setSyncBenchMessage] = useState({ type: '', text: '' });
+    const [syncAssessmentsLoading, setSyncAssessmentsLoading] = useState(false);
+    const [syncAssessmentsMessage, setSyncAssessmentsMessage] = useState({ type: '', text: '' });
 
     // --- Data State ---
     const [trainerList, setTrainerList] = useState([]);
@@ -138,10 +151,59 @@ function ManageUsers() {
         }
     };
 
+    // ✨ New handler for syncing the bench
+    const handleSyncBench = async () => {
+        setSyncBenchLoading(true);
+        setSyncBenchMessage({ type: '', text: '' });
+        setSyncAssessmentsMessage({ type: '', text: '' }); // Clear other message
+        try {
+            const response = await synchBenchwithApi();
+            setSyncBenchMessage({ type: 'success', text: response || "Bench synced successfully with API." });
+        } catch (err) {
+            setSyncBenchMessage({ type: 'danger', text: err.message || "Failed to sync bench." });
+        } finally {
+            setSyncBenchLoading(false);
+        }
+    };
+
+    // ✨ New handler for syncing assessments
+    const handleSyncAssessments = async () => {
+        setSyncAssessmentsLoading(true);
+        setSyncAssessmentsMessage({ type: '', text: '' });
+        setSyncBenchMessage({ type: '', text: '' }); // Clear other message
+        try {
+            const response = await synchAssessmentToDatabase();
+            setSyncAssessmentsMessage({ type: 'success', text: response || "Assessments synced successfully to the database." });
+        } catch (err) {
+            setSyncAssessmentsMessage({ type: 'danger', text: err.message || "Failed to sync assessments." });
+        } finally {
+            setSyncAssessmentsLoading(false);
+        }
+    };
+
+
     return (
         <div className="manage-users-page">
             <Container fluid>
-                <h2 className="page-title">User & Candidate Management</h2>
+                {/* ✨ MODIFIED HEADER WITH SYNC BUTTONS */}
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h2 className="page-title mb-0">User & Candidate Management</h2>
+                    <ButtonGroup>
+                        <Button variant="info" onClick={handleSyncBench} disabled={syncBenchLoading}>
+                            {syncBenchLoading ? <Spinner as="span" animation="border" size="sm" /> : <FontAwesomeIcon icon={faSync} className="me-2" />}
+                            Sync Bench
+                        </Button>
+                        <Button variant="warning" onClick={handleSyncAssessments} disabled={syncAssessmentsLoading}>
+                            {syncAssessmentsLoading ? <Spinner as="span" animation="border" size="sm" /> : <FontAwesomeIcon icon={faSync} className="me-2" />}
+                            Sync Assessments
+                        </Button>
+                    </ButtonGroup>
+                </div>
+
+                {/* ✨ Alerts for the new sync actions */}
+                {syncBenchMessage.text && <Alert variant={syncBenchMessage.type} onClose={() => setSyncBenchMessage({ type: '', text: '' })} dismissible>{syncBenchMessage.text}</Alert>}
+                {syncAssessmentsMessage.text && <Alert variant={syncAssessmentsMessage.type} onClose={() => setSyncAssessmentsMessage({ type: '', text: '' })} dismissible>{syncAssessmentsMessage.text}</Alert>}
+
                 <Row>
                     <Col lg={5} className="mb-4">
                         <Card className="custom-card mb-4">
@@ -225,27 +287,12 @@ function ManageUsers() {
                                         <Col md={3}><Form.Group><Form.Label>Person Status</Form.Label><Form.Select name="personStatus" value={candidateForm.personStatus} onChange={handleCandidateFormChange} required><option value="">Select Status...</option>{filterOptions.personStatuses.map(s => <option key={s} value={s}>{s}</option>)}</Form.Select></Form.Group></Col>
                                     </Row>
                                     
-                                    {/* ✨ NEW: Final row for actions */}
                                     <Row className="mt-4 align-items-center justify-content-between">
-                                        
                                         <Col xs="auto" className='m-3'>
-                                            <Form.Check
-                                                type="switch"
-                                                id="isDeployable-switch"
-                                                name="isDeployable"
-                                                label="Is Deployable"
-                                                checked={candidateForm.isDeployable}
-                                                onChange={handleCandidateFormChange}
-                                            />
+                                            <Form.Check type="switch" id="isDeployable-switch" name="isDeployable" label="Is Deployable" checked={candidateForm.isDeployable} onChange={handleCandidateFormChange} />
                                         </Col>
                                         <Col xs="auto">
-                                            <Button
-                                                variant="primary"
-                                                type="submit"
-                                                className="submit-button"
-                                                disabled={candidateLoading}
-                                                style={{ minWidth: '150px' }}
-                                            >
+                                            <Button variant="primary" type="submit" className="submit-button" disabled={candidateLoading} style={{ minWidth: '150px' }}>
                                                 {candidateLoading ? <Spinner as="span" animation="border" size="sm" /> : 'Add Candidate'}
                                             </Button>
                                         </Col>

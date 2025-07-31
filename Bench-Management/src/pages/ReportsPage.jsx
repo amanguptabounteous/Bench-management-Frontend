@@ -4,19 +4,17 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, T
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { getElementAtEvent } from 'react-chartjs-2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faChartLine, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faChartLine, faUsers, faTasks, faUserCheck, faChartPie, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
-import { fetchBenchDetails } from '../services/benchService';
 import {
     fetchDailyBenchStatus,
     fetchMonthlyBenchStatus,
     fetchStatusDistribution,
     fetchAgingAnalysis
-} from '../services/analyticsService';
+} from '../services/assessmentReportDetailsService';
 
-import './ReportsPage.css'; 
+import './ReportsPage.css';
 
-// 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, Filler);
 
 // --- Helper to get default date range (last 3 months) ---
@@ -37,15 +35,19 @@ function ReportsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // ✨ MODIFIED: State to hold the complete, unfiltered list of all employees
-    const [allBenchEmployees, setAllBenchEmployees] = useState([]);
-    // State for employees filtered by the selected date range
-    const [filteredEmployees, setFilteredEmployees] = useState([]);
-    
+    // States to hold the specific candidate list from each relevant API
+    const [allBenchEmployees, setAllBenchEmployees] = useState([]); // Default list from Status API
+    const [agingAnalysisCandidates, setAgingAnalysisCandidates] = useState([]); // List from Aging API
+
     // Data states for charts
     const [benchMovementData, setBenchMovementData] = useState({});
     const [statusData, setStatusData] = useState({});
     const [agingData, setAgingData] = useState({});
+    const [kpiData, setKpiData] = useState({});
+    const [deployabilityData, setDeployabilityData] = useState({});
+    const [skillDistributionData, setSkillDistributionData] = useState({});
+    const [benchExitData, setBenchExitData] = useState({});
+
 
     // Details table state
     const [details, setDetails] = useState({ title: 'Bench Employees Report', data: [] });
@@ -63,23 +65,57 @@ function ReportsPage() {
                 ? fetchDailyBenchStatus(start, end)
                 : fetchMonthlyBenchStatus(start, end);
 
-            // ✨ MODIFIED: Using fetchBenchDetails to get complete employee data
             const [
-                allEmployeesData, // This now gets ALL fields
-                movementData,
-                statusDist,
-                agingDist
+                movementResponse,
+                statusDistResponse,
+                agingDistResponse
             ] = await Promise.all([
-                fetchBenchDetails(), // Swapped to the correct service
                 benchMovementFetcher,
                 fetchStatusDistribution(start, end),
                 fetchAgingAnalysis(start, end)
             ]);
 
-            setAllBenchEmployees(allEmployeesData || []);
-            setBenchMovementData(movementData || {});
-            setStatusData(statusDist || {});
-            setAgingData(agingDist || {});
+            const candidatesFromStatusApi = statusDistResponse?.candidates || [];
+            setAllBenchEmployees(candidatesFromStatusApi);
+            setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: candidatesFromStatusApi });
+
+            setAgingAnalysisCandidates(agingDistResponse?.candidates || []);
+
+            const movementCounts = movementResponse?.counts?.dailyStatus || movementResponse?.counts?.monthlyStatus || {};
+            setBenchMovementData(movementCounts);
+            setStatusData(statusDistResponse?.counts?.statusDistribution || {});
+            setAgingData(agingDistResponse?.counts?.agingAnalysis || {});
+
+            const onBenchCandidates = agingDistResponse?.onBenchCandidates || [];
+            const leftBenchCandidates = movementResponse?.leftBenchCandidates || [];
+
+            const totalOnBench = agingDistResponse?.counts?.onBenchCount || 0;
+            const totalAgingDays = onBenchCandidates.reduce((acc, curr) => acc + curr.agingDays, 0);
+            const deployableCount = onBenchCandidates.filter(c => c.isDeployable).length;
+            setKpiData({
+                totalOnBench,
+                avgAging: totalOnBench > 0 ? (totalAgingDays / totalOnBench).toFixed(1) : 0,
+                deployablePercent: totalOnBench > 0 ? ((deployableCount / totalOnBench) * 100).toFixed(1) : 0,
+                leftBenchCount: movementResponse?.counts?.leftBenchCount || 0,
+            });
+
+            setDeployabilityData({
+                'Deployable': deployableCount,
+                'Not Deployable': totalOnBench - deployableCount
+            });
+
+            const skills = onBenchCandidates.reduce((acc, curr) => {
+                acc[curr.primarySkill] = (acc[curr.primarySkill] || 0) + 1;
+                return acc;
+            }, {});
+            setSkillDistributionData(skills);
+
+            const exits = leftBenchCandidates.reduce((acc, curr) => {
+                acc[curr.personStatus] = (acc[curr.personStatus] || 0) + 1;
+                return acc;
+            }, {});
+            setBenchExitData(exits);
+
 
         } catch (err) {
             console.error("Failed to fetch report data:", err);
@@ -88,28 +124,10 @@ function ReportsPage() {
             setLoading(false);
         }
     };
-    
-    // Initial data load on component mount
+
     useEffect(() => {
         handleGenerateReport();
     }, []);
-
-    // ✨ NEW: This effect now handles all frontend filtering whenever the master list or date range changes.
-    useEffect(() => {
-        const start = new Date(dateRange.start);
-        const end = new Date(dateRange.end);
-
-        const employeesInDateRange = allBenchEmployees.filter(emp => {
-            const benchStart = new Date(emp.benchStartDate);
-            // Handle cases where benchEndDate is null (currently on bench)
-            const benchEnd = emp.benchEndDate ? new Date(emp.benchEndDate) : new Date(); // Treat null as ongoing
-            return benchStart <= end && benchEnd >= start;
-        });
-
-        setFilteredEmployees(employeesInDateRange);
-        setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: employeesInDateRange });
-
-    }, [dateRange, allBenchEmployees]); // This re-runs only when the date or the master employee list changes
 
     // --- Chart Data Preparation ---
     const movementChartData = useMemo(() => {
@@ -158,6 +176,37 @@ function ReportsPage() {
         }]
     };
 
+    const deployabilityPieData = {
+        labels: Object.keys(deployabilityData),
+        datasets: [{
+            data: Object.values(deployabilityData),
+            backgroundColor: ['#28a745', '#dc3545'],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }]
+    };
+
+    const skillDistBarData = {
+        labels: Object.keys(skillDistributionData),
+        datasets: [{
+            label: 'Employees on Bench',
+            data: Object.values(skillDistributionData),
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+        }]
+    };
+
+    const benchExitPieData = {
+        labels: Object.keys(benchExitData),
+        datasets: [{
+            data: Object.values(benchExitData),
+            backgroundColor: ['#ffc107', '#fd7e14', '#6f42c1', '#20c997'],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }]
+    };
+
     // --- Event Handlers ---
     const handleChartClick = (event, chartRef, type) => {
         const element = getElementAtEvent(chartRef.current, event);
@@ -169,25 +218,42 @@ function ReportsPage() {
         if (type === 'aging') {
             const label = agingBarData.labels[index];
             title = `Employees on Bench: ${label}`;
-            const [min, maxStr] = label.replace(' days', '').replace('+', '-Infinity').split('-');
-            const minDays = Number(min);
-            const maxDays = Number(maxStr);
-            dataForTable = filteredEmployees.filter(emp => emp.agingDays >= minDays && (maxDays === Infinity || emp.agingDays <= maxDays));
+
+            let minDays = 0;
+            let maxDays = Infinity;
+            const cleanedLabel = label.trim();
+
+            if (cleanedLabel.startsWith('<')) {
+                maxDays = parseInt(cleanedLabel.match(/\d+/)[0], 10) - 1;
+            } else if (cleanedLabel.endsWith('+')) {
+                minDays = parseInt(cleanedLabel.match(/\d+/)[0], 10);
+            } else if (cleanedLabel.includes('-')) {
+                const parts = cleanedLabel.split('-').map(part => parseInt(part.trim().match(/\d+/)[0], 10));
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    minDays = parts[0];
+                    maxDays = parts[1];
+                }
+            }
+
+            dataForTable = agingAnalysisCandidates.filter(emp => {
+                const aging = emp.agingDays;
+                return aging >= minDays && (maxDays === Infinity || aging <= maxDays);
+            });
+
         } else if (type === 'status') {
             const statusLabel = statusPieData.labels[index];
             title = `Employees with Status: ${statusLabel}`;
-            dataForTable = filteredEmployees.filter(emp => emp.personStatus === statusLabel);
+            dataForTable = allBenchEmployees.filter(emp => emp.personStatus === statusLabel);
         }
         setDetails({ title, data: dataForTable });
     };
 
-    const clearFilter = () => setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: filteredEmployees });
+    const clearFilter = () => setDetails({ title: `Bench Employees (${dateRange.start} to ${dateRange.end})`, data: allBenchEmployees });
 
     return (
         <Container fluid className="reports-page p-4">
             <h2 className="mb-4 fw-light">Bench Analytics Dashboard</h2>
 
-            {/* Controls Section */}
             <Card className="shadow-sm mb-4">
                 <Card.Body>
                     <Row className="align-items-end g-3">
@@ -217,20 +283,28 @@ function ReportsPage() {
                     </Row>
                 </Card.Body>
             </Card>
-            
+
             {loading && <div className="text-center p-5"><Spinner animation="border" variant="primary" /><span className="ms-2">Generating reports...</span></div>}
             {error && <Alert variant="danger">{error}</Alert>}
 
-            {/* Charts Section */}
             {!loading && !error && (
                 <>
+                    {/* KPI Cards Section */}
+                    <Row className="mb-4">
+                        <Col md={3}><Card className="kpi-card bg-primary text-white"><Card.Body><div className="kpi-value">{kpiData.totalOnBench}</div><div className="kpi-label">Total on Bench</div></Card.Body></Card></Col>
+                        <Col md={3}><Card className="kpi-card bg-warning text-dark"><Card.Body><div className="kpi-value">{kpiData.avgAging} days</div><div className="kpi-label">Average Aging</div></Card.Body></Card></Col>
+                        <Col md={3}><Card className="kpi-card bg-success text-white"><Card.Body><div className="kpi-value">{kpiData.deployablePercent}%</div><div className="kpi-label">Deployable</div></Card.Body></Card></Col>
+                        <Col md={3}><Card className="kpi-card bg-danger text-white"><Card.Body><div className="kpi-value">{kpiData.leftBenchCount}</div><div className="kpi-label">Left Bench (Period)</div></Card.Body></Card></Col>
+                    </Row>
+
+                    {/* Main Content: New Grid Layout */}
                     <Row>
-                        <Col xl={8} className="mb-4">
+                        <Col xl={6} className="mb-4">
                             <Card className="shadow-sm h-100">
                                 <Card.Body className="d-flex flex-column">
                                     <h5 className="card-title text-center mb-3">Bench Movement ({granularity})</h5>
-                                    <div className="chart-container flex-grow-1">
-                                        {granularity === 'daily' 
+                                    <div className="chart-container flex-grow-1" style={{ minHeight: '300px' }}>
+                                        {granularity === 'daily'
                                             ? <Line data={movementChartData} options={{ responsive: true, maintainAspectRatio: false }} />
                                             : <Bar data={movementChartData} options={{ responsive: true, maintainAspectRatio: false }} />
                                         }
@@ -238,64 +312,150 @@ function ReportsPage() {
                                 </Card.Body>
                             </Card>
                         </Col>
-                        <Col xl={4} className="mb-4">
+                        <Col xl={6} className="mb-4">
                             <Card className="shadow-sm h-100">
                                 <Card.Body className="d-flex flex-column">
-                                    <h5 className="card-title text-center mb-3">Employee Status Distribution</h5>
+                                    <h5 className="card-title text-center mb-3"><FontAwesomeIcon icon={faChartPie} className="me-2" />Employee Status</h5>
                                     <div className="chart-container flex-grow-1">
-                                        <Pie ref={chartRefs.status} data={statusPieData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.status, 'status')} />
+                                        <Pie 
+                                            ref={chartRefs.status} 
+                                            data={statusPieData} 
+                                            options={{ 
+                                                responsive: true, 
+                                                maintainAspectRatio: false, 
+                                                plugins: { 
+                                                    legend: { 
+                                                        position: 'left' 
+                                                    } 
+                                                } 
+                                            }} 
+                                            onClick={(e) => handleChartClick(e, chartRefs.status, 'status')} 
+                                        />
                                     </div>
                                 </Card.Body>
                             </Card>
                         </Col>
                     </Row>
-                    <Row>
-                        <Col xl={12} className="mb-4">
+                    <Row className="align-items-start">
+                        {/* Left Column: Two compact cards */}
+                        <Col xl={4} className="mb-4">
+                            <Card className="shadow-sm mb-3" style={{ height: '220px' }}>
+                                <Card.Body className="d-flex flex-column">
+                                    <p className="card-title text-center mb-3">
+                                        <FontAwesomeIcon icon={faUserCheck} className="me-2" />Deployability
+                                    </p>
+                                    <div className="flex-grow-1">
+                                        <Pie 
+                                            data={deployabilityPieData} 
+                                            options={{ 
+                                                responsive: true, 
+                                                maintainAspectRatio: false, 
+                                                plugins: { 
+                                                    legend: { 
+                                                        position: 'left' 
+                                                    } 
+                                                } 
+                                            }} 
+                                        />
+                                    </div>
+                                </Card.Body>
+                            </Card>
+
+                            <Card className="shadow-sm" style={{ height: '220px' }}>
+                                <Card.Body className="d-flex flex-column">
+                                    <p className="card-title text-center mb-3">
+                                        <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Bench Exit Analysis
+                                    </p>
+                                    <div className="flex-grow-1">
+                                        <Pie 
+                                            data={benchExitPieData} 
+                                            options={{ 
+                                                responsive: true, 
+                                                maintainAspectRatio: false, 
+                                                plugins: { 
+                                                    legend: { 
+                                                        position: 'left' 
+                                                    } 
+                                                } 
+                                            }} 
+                                        />
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+
+                        {/* Middle Column */}
+                        <Col xl={4} className="mb-4" style={{ height: '440px' }}>
+                            <Card className="shadow-sm h-100">
+                                <Card.Body className="d-flex flex-column">
+                                    <h5 className="card-title text-center mb-3">
+                                        <FontAwesomeIcon icon={faTasks} className="me-2" />Skill Distribution on Bench
+                                    </h5>
+                                    <div className="flex-grow-1">
+                                        <Bar
+                                            data={skillDistBarData}
+                                            options={{ responsive: true, maintainAspectRatio: false, indexAxis: 'y' }}
+                                        />
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+
+                        {/* Right Column */}
+                        <Col xl={4} className="mb-4" style={{ height: '440px' }}>
                             <Card className="shadow-sm h-100">
                                 <Card.Body className="d-flex flex-column">
                                     <h5 className="card-title text-center mb-3">Bench Aging Analysis</h5>
-                                    <div className="chart-container flex-grow-1" style={{minHeight: '300px'}}>
-                                        <Bar ref={chartRefs.aging} data={agingBarData} options={{ responsive: true, maintainAspectRatio: false }} onClick={(e) => handleChartClick(e, chartRefs.aging, 'aging')} />
+                                    <div className="flex-grow-1">
+                                        <Bar
+                                            ref={chartRefs.aging}
+                                            data={agingBarData}
+                                            options={{ responsive: true, maintainAspectRatio: false }}
+                                            onClick={(e) => handleChartClick(e, chartRefs.aging, 'aging')}
+                                        />
                                     </div>
                                 </Card.Body>
                             </Card>
                         </Col>
                     </Row>
 
+
+
                     {/* Details Table Section */}
                     <Row>
                         <Col>
                             <Card className="shadow-sm">
-                                <Card.Header className="d-flex justify-content-between align-items-center bg-light">
-                                    <h5 className="mb-0"><FontAwesomeIcon icon={faUsers} className="me-2" />{details.title}</h5>
+                                <Card.Header className="d-flex justify-content-between align-items-center">
+                                    <h5 className="mb-0 details-title"><FontAwesomeIcon icon={faUsers} className="me-2" />{details.title}</h5>
                                     <Button variant="outline-secondary" size="sm" onClick={clearFilter}>Clear Filter</Button>
                                 </Card.Header>
-                                <Card.Body className="p-0">
-                                    <div className="table-responsive">
-                                        <Table hover className="details-table mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Emp ID</th><th>Name</th><th>Primary Skill</th><th>Level</th><th>YoE</th><th>Location</th><th>Aging</th><th>Deployable</th><th>Status</th>
+                                <div className="details-table-container">
+                                    <Table hover className="details-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Emp ID</th><th>Name</th><th>Primary Skill</th><th>Level</th><th>Location</th><th>Aging</th><th>Deployable</th><th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {details.data && details.data.length > 0 ? details.data.map(person => (
+                                                <tr key={person.empId}>
+                                                    <td>{person.empId}</td>
+                                                    <td>{person.name}</td>
+                                                    <td>{person.primarySkill}</td>
+                                                    <td>{person.level || 'N/A'}</td>
+                                                    <td>{person.currentLocation || person.baseLocation}</td>
+                                                    <td>{person.agingDays} days</td>
+                                                    <td><span className={`deploy-badge ${person.isDeployable ? 'text-deployable' : 'text-not-deployable'}`}>{person.isDeployable ? 'Yes' : 'No'}</span></td>
+                                                    <td>{person.personStatus}</td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                {details.data.map(person => (
-                                                    <tr key={person.empId}>
-                                                        <td>{person.empId}</td>
-                                                        <td>{person.name}</td>
-                                                        <td>{person.primarySkill}</td>
-                                                        <td>{person.level || 'N/A'}</td>
-                                                        <td>{person.experience}</td>
-                                                        <td>{person.currentLocation}</td>
-                                                        <td>{person.agingDays} days</td>
-                                                        <td><span className={`badge bg-${person.isDeployable ? 'success' : 'danger'}`}>{person.isDeployable ? 'Yes' : 'No'}</span></td>
-                                                        <td>{person.personStatus}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Card.Body>
+                                            )) : (
+                                                <tr>
+                                                    <td colSpan="8" className="text-center text-muted p-4">No data available for the selected period.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
+                                </div>
                             </Card>
                         </Col>
                     </Row>

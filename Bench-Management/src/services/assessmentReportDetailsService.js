@@ -204,3 +204,57 @@ export async function fetchCandidateSubtopicScores(empId) {
     throw error;
   }
 }
+
+// In analyticsService.js
+
+export async function fetchDailyBenchStatus(startDate, endDate) {
+  try {
+    // Append /with-details to get the candidate list
+    const response = await apiClient.get('/bms/analytics/bench-status/daily/with-details', {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch daily bench status:", error);
+    throw error;
+  }
+}
+
+export async function fetchMonthlyBenchStatus(startDate, endDate) {
+  try {
+    // Append /with-details to get the candidate list
+    const response = await apiClient.get('/bms/analytics/bench-status/monthly/with-details', {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch monthly bench status:", error);
+    throw error;
+  }
+}
+
+export async function fetchStatusDistribution(startDate, endDate) {
+  try {
+    // Append /with-details to get the candidate list
+    const response = await apiClient.get('/bms/analytics/status-distribution/with-details', {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch status distribution data:", error);
+    throw error;
+  }
+}
+
+export async function fetchAgingAnalysis(startDate, endDate) {
+  try {
+    // Append /with-details to get the candidate list
+    const response = await apiClient.get('/bms/analytics/aging-analysis/with-details', {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch aging analysis data:", error);
+    throw error;
+  }
+}

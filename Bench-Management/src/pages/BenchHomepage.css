@@ -162,7 +162,6 @@
 }
 
 .bench-table th {
-    background: transparent;
     border: none;
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -302,6 +301,8 @@
     border-bottom: none;
 }
 
+
+
 .assessment-list .score-value {
     font-weight: 600;
 }
@@ -332,7 +333,6 @@
 }
 
 .action-column-header {
-    background-color: var(--background-color);
     z-index: 2;
 }
 
@@ -397,3 +397,4 @@
 .assessment-tooltip-content {
     white-space: normal;
 }
+
